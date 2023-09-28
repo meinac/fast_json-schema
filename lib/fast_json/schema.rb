@@ -2,8 +2,8 @@
 
 require_relative "schema/version"
 
-module FastJson
-  module Schema
+class FastJSON
+  class Schema
     class Error < StandardError; end
     # Your code goes here...
   end

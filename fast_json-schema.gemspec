@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Mehmet Emin INAC"]
   spec.email = ["mehmetemininac@gmail.com"]
 
-  spec.summary = "Fastest schema validation library"
-  spec.description = "Validates JSON schemas for the provided meta-schema"
+  spec.summary = "Fastest JSON schema validation library"
+  spec.description = "Validates JSON schemas against given meta-schema"
   spec.homepage = "https://github.com/meinac/fast_json-schema"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
@@ -27,4 +27,5 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
+  spec.extensions    = ["ext/fast_json/schema/extconf.rb"]
 end

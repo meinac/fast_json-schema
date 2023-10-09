@@ -18,6 +18,16 @@
       compiled_schema->keyword##_val = keyword##_val;                \
   } while(0);
 
+#define ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(keyword, type_1, type_2, type_3) \
+  do {                                                                           \
+    VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);             \
+                                                                                 \
+    if(RB_TYPE_P(keyword##_val, type_1) ||                                       \
+       RB_TYPE_P(keyword##_val, type_2) ||                                       \
+       RB_TYPE_P(keyword##_val, type_3))                                         \
+      compiled_schema->keyword##_val = keyword##_val;                            \
+  } while(0);
+
 VALUE compiled_schema_class;
 
 static void mark_compiled_schema(void *ptr) {
@@ -72,6 +82,12 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
   compiled_schema->recursiveAnchor_val = Qundef;
   compiled_schema->recursiveRef_val = Qundef;
 
+  compiled_schema->multipleOf_val = Qundef;
+  compiled_schema->maximum_val = Qundef;
+  compiled_schema->exclusiveMaximum_val = Qundef;
+  compiled_schema->minimum_val = Qundef;
+  compiled_schema->exclusiveMinimum_val = Qundef;
+
   return compiled_schema;
 }
 
@@ -125,6 +141,12 @@ static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path) {
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(ref, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(recursiveAnchor, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(recursiveRef, T_STRING);
+
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(multipleOf, T_FIXNUM, T_BIGNUM, T_FLOAT);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(maximum, T_FIXNUM, T_BIGNUM, T_FLOAT);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(exclusiveMaximum, T_FIXNUM, T_BIGNUM, T_FLOAT);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(minimum, T_FIXNUM, T_BIGNUM, T_FLOAT);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(exclusiveMinimum, T_FIXNUM, T_BIGNUM, T_FLOAT);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 

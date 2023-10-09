@@ -18,6 +18,12 @@ typedef struct compiled_schema_struct {
 
   validation_function validation_function;
   validation_function type_validation_function;
+
+  VALUE multipleOf_val;
+  VALUE maximum_val;
+  VALUE exclusiveMaximum_val;
+  VALUE minimum_val;
+  VALUE exclusiveMinimum_val;
 } CompiledSchema;
 
 #endif

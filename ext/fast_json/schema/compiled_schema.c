@@ -1,5 +1,6 @@
 #include "compiled_schema.h"
 #include "keywords.h"
+#include "validate.h"
 
 #if SIZEOF_VOIDP == SIZEOF_LONG
 # define PTR2NUM(x)   (LONG2NUM((long)(x)))
@@ -73,11 +74,6 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
 
   return compiled_schema;
 }
-
-// These functions will be defined by `validate`
-extern void validate(VALUE, CompiledSchema *, VALUE, Context *);
-extern void no_op_validate(VALUE, CompiledSchema *, VALUE, Context *);
-extern void false_validate(VALUE, CompiledSchema *, VALUE, Context *);
 
 static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path) {
   CompiledSchema *compiled_schema = create_compiled_schema(path);

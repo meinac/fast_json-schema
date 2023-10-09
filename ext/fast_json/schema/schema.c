@@ -1,5 +1,6 @@
 #include <ruby.h>
+#include "keywords.h"
 
 void Init_schema() {
-  // TODO
+  Init_keywords();
 }

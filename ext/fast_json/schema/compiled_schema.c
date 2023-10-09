@@ -75,6 +75,32 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
   return compiled_schema;
 }
 
+static validation_function type_validation_function(VALUE ruby_schema) {
+  VALUE type_val = rb_hash_aref(ruby_schema, type_str);
+
+  if(!RB_TYPE_P(type_val, T_STRING)) return no_op_validate;
+
+  char *type_str = StringValuePtr(type_val);
+
+  if(strcmp(type_str, "null") == 0) {
+    return validate_null;
+  } else if(strcmp(type_str, "boolean") == 0) {
+    return validate_bool;
+  } else if(strcmp(type_str, "string") == 0) {
+    return validate_string;
+  } else if(strcmp(type_str, "integer") == 0) {
+    return validate_integer;
+  } else if(strcmp(type_str, "number") == 0) {
+    return validate_number;
+  } else if(strcmp(type_str, "array") == 0) {
+    return validate_array;
+  } else if(strcmp(type_str, "object") == 0) {
+    return validate_object;
+  }
+
+  return no_op_validate;
+}
+
 static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path) {
   CompiledSchema *compiled_schema = create_compiled_schema(path);
 
@@ -99,6 +125,8 @@ static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path) {
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(ref, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(recursiveAnchor, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(recursiveRef, T_STRING);
+
+  compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 
   // Embed compiled schema into Ruby Hash
   rb_hash_aset(ref_hash, path, PTR2NUM(compiled_schema));

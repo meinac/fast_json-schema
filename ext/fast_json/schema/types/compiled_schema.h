@@ -17,6 +17,7 @@ typedef struct compiled_schema_struct {
   VALUE recursiveRef_val;
 
   validation_function validation_function;
+  validation_function type_validation_function;
 } CompiledSchema;
 
 #endif

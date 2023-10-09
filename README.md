@@ -35,7 +35,7 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `oneOf` &cross;
     - `not` &cross;
 - **Validation keywords for any instance type**
-    - `type` &cross;
+    - `type` &check;
     - `enum` &cross;
     - `const` &cross;
 - **Validation Keywords for Numeric Instances (number and integer)**

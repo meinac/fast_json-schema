@@ -1,6 +1,6 @@
 #include "context.h"
 
-#define MAX_CONTEXT_DEPTH 1000
+#define MAX_CONTEXT_DEPTH 100
 
 VALUE context_class;
 

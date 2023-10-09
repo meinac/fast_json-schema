@@ -79,21 +79,21 @@ static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path) {
   CompiledSchema *compiled_schema = create_compiled_schema(path);
 
   if(ruby_schema == Qfalse)
-    compiled_schema->validate_function = false_validate;
+    compiled_schema->validation_function = false_validate;
 
   if(ruby_schema == Qtrue)
-    compiled_schema->validate_function = no_op_validate;
+    compiled_schema->validation_function = no_op_validate;
 
   if(!RB_TYPE_P(ruby_schema, T_HASH))
     return compiled_schema;
 
   if(RHASH_SIZE(ruby_schema) == 0) {
-    compiled_schema->validate_function = no_op_validate;
+    compiled_schema->validation_function = no_op_validate;
 
     return compiled_schema;
   }
 
-  compiled_schema->validate_function = validate;
+  compiled_schema->validation_function = validate;
 
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(id, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(ref, T_STRING);

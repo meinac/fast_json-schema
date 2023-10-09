@@ -17,7 +17,7 @@ VALUE rb_validate_with_schema(VALUE self, VALUE compiled_schema_obj, VALUE data,
   Context *context;
   GetContext(context_object, context);
 
-  compiled_schema->validate_function(self, compiled_schema, data, context);
+  compiled_schema->validation_function(self, compiled_schema, data, context);
 
   return Qnil;
 }

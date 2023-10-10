@@ -21,7 +21,7 @@ TODO: Write usage instructions here
 This gem is under development at the moment. Here is the list of keywords/annotations and the progress;
 
 - **Annotations**
-    - `$id` &check;
+    - `$id` &cross;
     - `$ref` &cross;
     - `$recursiveAnchor` &cross;
     - `$recursiveRef` &cross;
@@ -39,11 +39,11 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `enum` &cross;
     - `const` &cross;
 - **Validation Keywords for Numeric Instances (number and integer)**
-    - `multipleOf` &cross;
-    - `maximum` &cross;
-    - `exclusiveMaximum` &cross;
-    - `minimum` &cross;
-    - `exclusiveMinimum` &cross;
+    - `multipleOf` &check;
+    - `maximum` &check;
+    - `exclusiveMaximum` &check;
+    - `minimum` &check;
+    - `exclusiveMinimum` &check;
 - **Validation Keywords for Strings**
     - `maxLength` &cross;
     - `minLength` &cross;

@@ -1,12 +1,13 @@
 #include <ruby.h>
 #include "keywords.h"
 #include "compiled_schema.h"
-#include "context.h"
+#include "types/context.h"
 #include "error.h"
+#include "value_pointer_caster.h"
 
-VALUE rb_validate_with_schema(VALUE self, VALUE compiled_schema_obj, VALUE data, VALUE context_object) {
+VALUE rb_validate_with_schema(VALUE self, VALUE compiled_schema_obj, VALUE data, VALUE context_pointer) {
   if (!rb_block_given_p()) {
-    VALUE args[3] = { compiled_schema_obj, data, context_object};
+    VALUE args[3] = { compiled_schema_obj, data, context_pointer};
 
     RETURN_SIZED_ENUMERATOR(self, 3, args, 0);
   }
@@ -14,8 +15,17 @@ VALUE rb_validate_with_schema(VALUE self, VALUE compiled_schema_obj, VALUE data,
   CompiledSchema *compiled_schema;
   GetCompiledSchema(compiled_schema_obj, compiled_schema);
 
+  Context context_s;
   Context *context;
-  GetContext(context_object, context);
+
+  if(NIL_P(context_pointer)) {
+    context_s.path[0] = root_path_str;
+    context_s.depth = 1;
+
+    context = &context_s;
+  } else {
+    context = NUM2PTR(context_pointer);
+  }
 
   compiled_schema->validation_function(self, compiled_schema, data, context);
 
@@ -24,9 +34,8 @@ VALUE rb_validate_with_schema(VALUE self, VALUE compiled_schema_obj, VALUE data,
 
 VALUE rb_validate(VALUE self, VALUE data) {
   VALUE compiled_schema_obj = rb_ivar_get(self, rb_intern("compiled_schema"));
-  VALUE context_object = create_context_object(root_path_str);
 
-  return rb_funcall(self, rb_intern("validate_with_schema"), 3, compiled_schema_obj, data, context_object);
+  return rb_funcall(self, rb_intern("validate_with_schema"), 3, compiled_schema_obj, data, Qnil);
 }
 
 VALUE rb_compile(VALUE self) {

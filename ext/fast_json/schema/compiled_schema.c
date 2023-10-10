@@ -1,14 +1,7 @@
 #include "compiled_schema.h"
 #include "keywords.h"
 #include "validate.h"
-
-#if SIZEOF_VOIDP == SIZEOF_LONG
-# define PTR2NUM(x)   (LONG2NUM((long)(x)))
-# define NUM2PTR(x)   ((void *)(NUM2ULONG(x)))
-#else
-# define PTR2NUM(x)   (LL2NUM((LONG_LONG)(x)))
-# define NUM2PTR(x)   ((void *)(NUM2ULL(x)))
-#endif
+#include "value_pointer_caster.h"
 
 #define ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(keyword, type)         \
   do {                                                               \

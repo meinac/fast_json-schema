@@ -11,6 +11,15 @@
       compiled_schema->keyword##_val = keyword##_val;                \
   } while(0);
 
+#define ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(keyword, type_1, type_2) \
+  do {                                                                   \
+    VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);     \
+                                                                         \
+    if(RB_TYPE_P(keyword##_val, type_1) ||                               \
+       RB_TYPE_P(keyword##_val, type_2))                                 \
+      compiled_schema->keyword##_val = keyword##_val;                    \
+  } while(0);
+
 #define ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(keyword, type_1, type_2, type_3) \
   do {                                                                           \
     VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);             \
@@ -23,6 +32,11 @@
 
 VALUE compiled_schema_class;
 
+/*
+* Here I mark all the values even if they are immediate values like integers or other
+* values which should be already marked by the schema hash object provided while creating
+* the `FastJSON::Schema` instance but it's better to be safe than sorry.
+*/
 static void mark_compiled_schema(void *ptr) {
   CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
 
@@ -30,12 +44,26 @@ static void mark_compiled_schema(void *ptr) {
   if(compiled_schema->ref_val != Qundef) rb_gc_mark(compiled_schema->ref_val);
   if(compiled_schema->recursiveAnchor_val != Qundef) rb_gc_mark(compiled_schema->recursiveAnchor_val);
   if(compiled_schema->recursiveRef_val != Qundef) rb_gc_mark(compiled_schema->recursiveRef_val);
+
+  if(compiled_schema->multipleOf_val != Qundef) rb_gc_mark(compiled_schema->multipleOf_val);
+  if(compiled_schema->maximum_val != Qundef) rb_gc_mark(compiled_schema->maximum_val);
+  if(compiled_schema->exclusiveMaximum_val != Qundef) rb_gc_mark(compiled_schema->exclusiveMaximum_val);
+  if(compiled_schema->minimum_val != Qundef) rb_gc_mark(compiled_schema->minimum_val);
+  if(compiled_schema->exclusiveMinimum_val != Qundef) rb_gc_mark(compiled_schema->exclusiveMinimum_val);
+
+  if(compiled_schema->maxLength_val != Qundef) rb_gc_mark(compiled_schema->maxLength_val);
+  if(compiled_schema->minLength_val != Qundef) rb_gc_mark(compiled_schema->minLength_val);
+  if(compiled_schema->pattern_val != Qundef) rb_gc_mark(compiled_schema->pattern_val);
 }
 
 static void free_compiled_schema(void *ptr) {
   xfree(ptr);
 }
 
+/*
+* Here I am re-assigning all the values including the immediate ones which can not be
+* compacted as they are located in stack but there is no harm re-assigning them.
+*/
 static void compact_compiled_schema(void *ptr) {
   CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
 
@@ -43,6 +71,16 @@ static void compact_compiled_schema(void *ptr) {
   if(compiled_schema->ref_val != Qundef) compiled_schema->ref_val = rb_gc_location(compiled_schema->ref_val);
   if(compiled_schema->recursiveAnchor_val != Qundef) compiled_schema->recursiveAnchor_val = rb_gc_location(compiled_schema->recursiveAnchor_val);
   if(compiled_schema->recursiveRef_val != Qundef) compiled_schema->recursiveRef_val = rb_gc_location(compiled_schema->recursiveRef_val);
+
+  if(compiled_schema->multipleOf_val != Qundef) compiled_schema->multipleOf_val = rb_gc_location(compiled_schema->multipleOf_val);
+  if(compiled_schema->maximum_val != Qundef) compiled_schema->maximum_val = rb_gc_location(compiled_schema->maximum_val);
+  if(compiled_schema->exclusiveMaximum_val != Qundef) compiled_schema->exclusiveMaximum_val = rb_gc_location(compiled_schema->exclusiveMaximum_val);
+  if(compiled_schema->minimum_val != Qundef) compiled_schema->minimum_val = rb_gc_location(compiled_schema->minimum_val);
+  if(compiled_schema->exclusiveMinimum_val != Qundef) compiled_schema->exclusiveMinimum_val = rb_gc_location(compiled_schema->exclusiveMinimum_val);
+
+  if(compiled_schema->maxLength_val != Qundef) compiled_schema->maxLength_val = rb_gc_location(compiled_schema->maxLength_val);
+  if(compiled_schema->minLength_val != Qundef) compiled_schema->minLength_val = rb_gc_location(compiled_schema->minLength_val);
+  if(compiled_schema->pattern_val != Qundef) compiled_schema->pattern_val = rb_gc_location(compiled_schema->pattern_val);
 }
 
 const rb_data_type_t compiled_schema_type = {
@@ -80,6 +118,10 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
   compiled_schema->exclusiveMaximum_val = Qundef;
   compiled_schema->minimum_val = Qundef;
   compiled_schema->exclusiveMinimum_val = Qundef;
+
+  compiled_schema->maxLength_val = Qundef;
+  compiled_schema->minLength_val = Qundef;
+  compiled_schema->pattern_val = Qundef;
 
   return compiled_schema;
 }
@@ -140,6 +182,10 @@ static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path) {
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(exclusiveMaximum, T_FIXNUM, T_BIGNUM, T_FLOAT);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(minimum, T_FIXNUM, T_BIGNUM, T_FLOAT);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(exclusiveMinimum, T_FIXNUM, T_BIGNUM, T_FLOAT);
+
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxLength, T_FIXNUM, T_BIGNUM);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minLength, T_FIXNUM, T_BIGNUM);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(pattern, T_STRING);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 

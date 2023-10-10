@@ -8,6 +8,12 @@ typedef struct compiled_schema_struct CompiledSchema;
 
 typedef void (*validation_function)(VALUE, CompiledSchema *, VALUE, Context *);
 
+/*
+* TODO:
+* Currently all the validation keywords are stored flat in this struct
+* which is a waste of memory. I'm planning to use union for sustaining
+* the data locality and reducing the amount of memory wasted.
+*/
 typedef struct compiled_schema_struct {
   VALUE path;
 
@@ -24,6 +30,10 @@ typedef struct compiled_schema_struct {
   VALUE exclusiveMaximum_val;
   VALUE minimum_val;
   VALUE exclusiveMinimum_val;
+
+  VALUE maxLength_val;
+  VALUE minLength_val;
+  VALUE pattern_val;
 } CompiledSchema;
 
 #endif

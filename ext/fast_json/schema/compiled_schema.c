@@ -31,16 +31,16 @@
       compiled_schema->keyword##_val = keyword##_val;                            \
   } while(0);
 
-#define ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(keyword)                                  \
-  do {                                                                             \
-    VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);               \
-                                                                                   \
-    if(!NIL_P(keyword##_val)) {                                                    \
-      VALUE child_path = new_path(path, keyword##_str);                            \
-      CompiledSchema *child_schema = compile(keyword##_val, ref_hash, child_path); \
-                                                                                   \
-      compiled_schema->keyword##_schema = child_schema;                            \
-    }                                                                              \
+#define ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(keyword)                                           \
+  do {                                                                                      \
+    VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);                        \
+                                                                                            \
+    if(!NIL_P(keyword##_val)) {                                                             \
+      VALUE child_path = new_path(path, keyword##_str);                                     \
+      CompiledSchema *child_schema = compile(keyword##_val, ref_hash, child_path, NO_FLAG); \
+                                                                                            \
+      compiled_schema->keyword##_schema = child_schema;                                     \
+    }                                                                                       \
   } while(0);
 
 VALUE compiled_schema_class;
@@ -52,6 +52,8 @@ VALUE compiled_schema_class;
 */
 static void mark_compiled_schema(void *ptr) {
   CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
+
+  if(IS_CHILD(compiled_schema)) return;
 
   if(compiled_schema->id_val != Qundef) rb_gc_mark(compiled_schema->id_val);
   if(compiled_schema->ref_val != Qundef) rb_gc_mark(compiled_schema->ref_val);
@@ -78,6 +80,8 @@ static void mark_compiled_schema(void *ptr) {
 static void free_compiled_schema(void *ptr) {
   CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
 
+  if(IS_CHILD(compiled_schema)) return;
+
   if(compiled_schema->items_schema != NULL) free_compiled_schema(compiled_schema->items_schema);
   if(compiled_schema->contains_schema != NULL) free_compiled_schema(compiled_schema->contains_schema);
 
@@ -90,6 +94,8 @@ static void free_compiled_schema(void *ptr) {
 */
 static void compact_compiled_schema(void *ptr) {
   CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
+
+  if(IS_CHILD(compiled_schema)) return;
 
   if(compiled_schema->id_val != Qundef) compiled_schema->id_val = rb_gc_location(compiled_schema->id_val);
   if(compiled_schema->ref_val != Qundef) compiled_schema->ref_val = rb_gc_location(compiled_schema->ref_val);
@@ -190,8 +196,10 @@ static validation_function type_validation_function(VALUE ruby_schema) {
   return no_op_validate;
 }
 
-static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path) {
+static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, schema_flag_t flags) {
   CompiledSchema *compiled_schema = create_compiled_schema(path);
+
+  compiled_schema->flags = flags;
 
   if(ruby_schema == Qfalse)
     compiled_schema->validation_function = false_validate;
@@ -249,7 +257,7 @@ void compile_schema(VALUE self) {
   VALUE ruby_schema = rb_ivar_get(self, rb_intern("@ruby_schema"));
   VALUE ref_hash = rb_hash_new();
 
-  CompiledSchema *compiled_schema = compile(ruby_schema, ref_hash, root_path_str);
+  CompiledSchema *compiled_schema = compile(ruby_schema, ref_hash, root_path_str, ROOT_SCHEMA);
   VALUE compiled_schema_obj = TypedData_Wrap_Struct(compiled_schema_class, &compiled_schema_type, compiled_schema);
 
   rb_ivar_set(self, rb_intern("compiled_schema"), compiled_schema_obj);

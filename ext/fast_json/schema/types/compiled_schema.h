@@ -1,12 +1,18 @@
 #include <ruby.h>
 #include "types/context.h"
 
+#define NO_FLAG 0
+#define ROOT_SCHEMA (1 << 0)
+#define IS_CHILD(compiled_schema) (compiled_schema->flags & ROOT_SCHEMA) == 0
+
 #ifndef FAST_JSON_SCHEMA_COMPILED_SCHEMA_TYPE
 #define FAST_JSON_SCHEMA_COMPILED_SCHEMA_TYPE 1
 
 typedef struct compiled_schema_struct CompiledSchema;
 
 typedef void (*validation_function)(VALUE, CompiledSchema *, VALUE, Context *);
+
+typedef unsigned char schema_flag_t;
 
 /*
 * TODO:
@@ -15,6 +21,7 @@ typedef void (*validation_function)(VALUE, CompiledSchema *, VALUE, Context *);
 * the data locality and reducing the amount of memory wasted.
 */
 typedef struct compiled_schema_struct {
+  schema_flag_t flags;
   VALUE path;
 
   VALUE id_val;

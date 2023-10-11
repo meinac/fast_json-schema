@@ -30,12 +30,24 @@ static void validate_contains(VALUE schema, CompiledSchema *compiled_schema, VAL
       valid_count++;
   }
 
-  if(valid_count == 0)
-    yield_error(compiled_schema->contains_schema, data, context, "contains");
-
   if(RB_INTEGER_TYPE_P(compiled_schema->maxContains_val)) {
     if(valid_count > NUM2LONG(compiled_schema->maxContains_val))
       yield_error(compiled_schema, data, context, "maxContains");
+  }
+
+  /*
+  * According to spec description, when the `minContains` keyword is missing, we must check
+  * if there is at least one valid item against the `contains` schema.
+  *
+  * If the `minContains` keyword exists, we must check if the number of valid items are
+  * greater than or equal to the `minContains` value.
+  */
+  if(RB_INTEGER_TYPE_P(compiled_schema->minContains_val)) {
+    if(valid_count < NUM2LONG(compiled_schema->minContains_val))
+      yield_error(compiled_schema, data, context, "minContains");
+  } else {
+    if(valid_count == 0)
+      yield_error(compiled_schema->contains_schema, data, context, "contains");
   }
 }
 

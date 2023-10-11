@@ -1,5 +1,6 @@
 #include "validate_array.h"
 #include "error.h"
+#include "value_pointer_caster.h"
 
 static void validate_items(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   long i;
@@ -13,6 +14,24 @@ static void validate_items(VALUE schema, CompiledSchema *compiled_schema, VALUE 
   }
 
   context->depth--;
+}
+
+static void validate_contains(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
+  long i, valid_count = 0;
+
+  VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema->contains_schema);
+
+  for(i = 0; i < RARRAY_LEN(data); i++) {
+    VALUE entry = rb_ary_entry(data, i);
+    VALUE enumerator = rb_funcall(schema, rb_intern("validate_with_schema"), 3, compiled_schema_obj, entry, PTR2NUM(context));
+    VALUE none = rb_funcall(enumerator, rb_intern("none?"), 0);
+
+    if(none == Qtrue)
+      valid_count++;
+  }
+
+  if(valid_count == 0)
+    yield_error(compiled_schema->contains_schema, data, context, "contains");
 }
 
 void validate_array(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
@@ -39,4 +58,7 @@ void validate_array(VALUE schema, CompiledSchema *compiled_schema, VALUE data, C
 
   if(compiled_schema->items_schema != NULL)
     validate_items(schema, compiled_schema, data, context);
+
+  if(compiled_schema->contains_schema != NULL)
+    validate_contains(schema, compiled_schema, data, context);
 }

@@ -9,4 +9,9 @@ void validate_object(VALUE schema, CompiledSchema *compiled_schema, VALUE data, 
     if(RHASH_SIZE(data) > NUM2ULONG(compiled_schema->maxProperties_val))
       yield_error(compiled_schema, data, context, "maxProperties");
   }
+
+  if(RB_INTEGER_TYPE_P(compiled_schema->minProperties_val)) {
+    if(RHASH_SIZE(data) < NUM2ULONG(compiled_schema->minProperties_val))
+      yield_error(compiled_schema, data, context, "minProperties");
+  }
 }

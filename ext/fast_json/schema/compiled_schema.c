@@ -43,6 +43,18 @@
     }                                                                                       \
   } while(0);
 
+#define COMPACT_VALUE(keyword)                                                         \
+  do {                                                                                 \
+    if(compiled_schema->keyword##_val != Qundef)                                       \
+      compiled_schema->keyword##_val = rb_gc_location(compiled_schema->keyword##_val); \
+  } while(0);
+
+#define MARK_VALUE(keyword)                       \
+  do {                                            \
+    if(compiled_schema->keyword##_val != Qundef)  \
+      rb_gc_mark(compiled_schema->keyword##_val); \
+  } while(0);
+
 VALUE compiled_schema_class;
 
 /*
@@ -55,31 +67,31 @@ static void mark_compiled_schema(void *ptr) {
 
   if(IS_CHILD(compiled_schema)) return;
 
-  if(compiled_schema->id_val != Qundef) rb_gc_mark(compiled_schema->id_val);
-  if(compiled_schema->ref_val != Qundef) rb_gc_mark(compiled_schema->ref_val);
-  if(compiled_schema->recursiveAnchor_val != Qundef) rb_gc_mark(compiled_schema->recursiveAnchor_val);
-  if(compiled_schema->recursiveRef_val != Qundef) rb_gc_mark(compiled_schema->recursiveRef_val);
+  MARK_VALUE(id);
+  MARK_VALUE(ref);
+  MARK_VALUE(recursiveAnchor);
+  MARK_VALUE(recursiveRef);
 
-  if(compiled_schema->multipleOf_val != Qundef) rb_gc_mark(compiled_schema->multipleOf_val);
-  if(compiled_schema->maximum_val != Qundef) rb_gc_mark(compiled_schema->maximum_val);
-  if(compiled_schema->exclusiveMaximum_val != Qundef) rb_gc_mark(compiled_schema->exclusiveMaximum_val);
-  if(compiled_schema->minimum_val != Qundef) rb_gc_mark(compiled_schema->minimum_val);
-  if(compiled_schema->exclusiveMinimum_val != Qundef) rb_gc_mark(compiled_schema->exclusiveMinimum_val);
+  MARK_VALUE(multipleOf);
+  MARK_VALUE(maximum);
+  MARK_VALUE(exclusiveMaximum);
+  MARK_VALUE(minimum);
+  MARK_VALUE(exclusiveMinimum);
 
-  if(compiled_schema->maxLength_val != Qundef) rb_gc_mark(compiled_schema->maxLength_val);
-  if(compiled_schema->minLength_val != Qundef) rb_gc_mark(compiled_schema->minLength_val);
-  if(compiled_schema->pattern_val != Qundef) rb_gc_mark(compiled_schema->pattern_val);
+  MARK_VALUE(maxLength);
+  MARK_VALUE(minLength);
+  MARK_VALUE(pattern);
 
-  if(compiled_schema->maxItems_val != Qundef) rb_gc_mark(compiled_schema->maxItems_val);
-  if(compiled_schema->minItems_val != Qundef) rb_gc_mark(compiled_schema->minItems_val);
-  if(compiled_schema->uniqueItems_val != Qundef) rb_gc_mark(compiled_schema->uniqueItems_val);
-  if(compiled_schema->maxContains_val != Qundef) rb_gc_mark(compiled_schema->maxContains_val);
-  if(compiled_schema->minContains_val != Qundef) rb_gc_mark(compiled_schema->minContains_val);
+  MARK_VALUE(maxItems);
+  MARK_VALUE(minItems);
+  MARK_VALUE(uniqueItems);
+  MARK_VALUE(maxContains);
+  MARK_VALUE(minContains);
 
-  if(compiled_schema->maxProperties_val != Qundef) rb_gc_mark(compiled_schema->maxProperties_val);
-  if(compiled_schema->minProperties_val != Qundef) rb_gc_mark(compiled_schema->minProperties_val);
-  if(compiled_schema->required_val != Qundef) rb_gc_mark(compiled_schema->required_val);
-  if(compiled_schema->dependentRequired_val != Qundef) rb_gc_mark(compiled_schema->dependentRequired_val);
+  MARK_VALUE(maxProperties);
+  MARK_VALUE(minProperties);
+  MARK_VALUE(required);
+  MARK_VALUE(dependentRequired);
 }
 
 static void free_child_schema(CompiledSchema *compiled_schema) {
@@ -118,31 +130,31 @@ static void compact_compiled_schema(void *ptr) {
 
   if(IS_CHILD(compiled_schema)) return;
 
-  if(compiled_schema->id_val != Qundef) compiled_schema->id_val = rb_gc_location(compiled_schema->id_val);
-  if(compiled_schema->ref_val != Qundef) compiled_schema->ref_val = rb_gc_location(compiled_schema->ref_val);
-  if(compiled_schema->recursiveAnchor_val != Qundef) compiled_schema->recursiveAnchor_val = rb_gc_location(compiled_schema->recursiveAnchor_val);
-  if(compiled_schema->recursiveRef_val != Qundef) compiled_schema->recursiveRef_val = rb_gc_location(compiled_schema->recursiveRef_val);
+  COMPACT_VALUE(id);
+  COMPACT_VALUE(ref);
+  COMPACT_VALUE(recursiveAnchor);
+  COMPACT_VALUE(recursiveRef);
 
-  if(compiled_schema->multipleOf_val != Qundef) compiled_schema->multipleOf_val = rb_gc_location(compiled_schema->multipleOf_val);
-  if(compiled_schema->maximum_val != Qundef) compiled_schema->maximum_val = rb_gc_location(compiled_schema->maximum_val);
-  if(compiled_schema->exclusiveMaximum_val != Qundef) compiled_schema->exclusiveMaximum_val = rb_gc_location(compiled_schema->exclusiveMaximum_val);
-  if(compiled_schema->minimum_val != Qundef) compiled_schema->minimum_val = rb_gc_location(compiled_schema->minimum_val);
-  if(compiled_schema->exclusiveMinimum_val != Qundef) compiled_schema->exclusiveMinimum_val = rb_gc_location(compiled_schema->exclusiveMinimum_val);
+  COMPACT_VALUE(multipleOf);
+  COMPACT_VALUE(maximum);
+  COMPACT_VALUE(exclusiveMaximum);
+  COMPACT_VALUE(minimum);
+  COMPACT_VALUE(exclusiveMinimum);
 
-  if(compiled_schema->maxLength_val != Qundef) compiled_schema->maxLength_val = rb_gc_location(compiled_schema->maxLength_val);
-  if(compiled_schema->minLength_val != Qundef) compiled_schema->minLength_val = rb_gc_location(compiled_schema->minLength_val);
-  if(compiled_schema->pattern_val != Qundef) compiled_schema->pattern_val = rb_gc_location(compiled_schema->pattern_val);
+  COMPACT_VALUE(maxLength);
+  COMPACT_VALUE(minLength);
+  COMPACT_VALUE(pattern);
 
-  if(compiled_schema->maxItems_val != Qundef) compiled_schema->maxItems_val = rb_gc_location(compiled_schema->maxItems_val);
-  if(compiled_schema->minItems_val != Qundef) compiled_schema->minItems_val = rb_gc_location(compiled_schema->minItems_val);
-  if(compiled_schema->uniqueItems_val != Qundef) compiled_schema->uniqueItems_val = rb_gc_location(compiled_schema->uniqueItems_val);
-  if(compiled_schema->maxContains_val != Qundef) compiled_schema->maxContains_val = rb_gc_location(compiled_schema->maxContains_val);
-  if(compiled_schema->minContains_val != Qundef) compiled_schema->minContains_val = rb_gc_location(compiled_schema->minContains_val);
+  COMPACT_VALUE(maxItems);
+  COMPACT_VALUE(minItems);
+  COMPACT_VALUE(uniqueItems);
+  COMPACT_VALUE(maxContains);
+  COMPACT_VALUE(minContains);
 
-  if(compiled_schema->maxProperties_val != Qundef) compiled_schema->maxProperties_val = rb_gc_location(compiled_schema->maxProperties_val);
-  if(compiled_schema->minProperties_val != Qundef) compiled_schema->minProperties_val = rb_gc_location(compiled_schema->minProperties_val);
-  if(compiled_schema->required_val != Qundef) compiled_schema->required_val = rb_gc_location(compiled_schema->required_val);
-  if(compiled_schema->dependentRequired_val != Qundef) compiled_schema->dependentRequired_val = rb_gc_location(compiled_schema->dependentRequired_val);
+  COMPACT_VALUE(maxProperties);
+  COMPACT_VALUE(minProperties);
+  COMPACT_VALUE(required);
+  COMPACT_VALUE(dependentRequired);
 }
 
 const rb_data_type_t compiled_schema_type = {

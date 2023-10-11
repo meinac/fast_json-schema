@@ -82,14 +82,29 @@ static void mark_compiled_schema(void *ptr) {
   if(compiled_schema->dependentRequired_val != Qundef) rb_gc_mark(compiled_schema->dependentRequired_val);
 }
 
+static void free_child_schema(CompiledSchema *compiled_schema) {
+  if(compiled_schema->items_schema != NULL) free_child_schema(compiled_schema->items_schema);
+  if(compiled_schema->contains_schema != NULL) free_child_schema(compiled_schema->contains_schema);
+  if(compiled_schema->properties_schema != NULL) free_child_schema(compiled_schema->properties_schema);
+
+  xfree(compiled_schema);
+}
+
+/*
+* This gets called by the Ruby GC for each `FastJSON::Schema::CompiledSchema` instance.
+* As we are also wrapping the child compiled schemas into Ruby instances to pass them between
+* Ruby methods, the pointer we receive here can refer to a child compiled schema which is needed
+* by its parent. In that case, we shouldn't free the memory block addressed by that pointer and
+* let the root compiled schema to handle freeing them.
+*/
 static void free_compiled_schema(void *ptr) {
   CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
 
   if(IS_CHILD(compiled_schema)) return;
 
-  if(compiled_schema->items_schema != NULL) free_compiled_schema(compiled_schema->items_schema);
-  if(compiled_schema->contains_schema != NULL) free_compiled_schema(compiled_schema->contains_schema);
-  if(compiled_schema->properties_schema != NULL) free_compiled_schema(compiled_schema->properties_schema);
+  if(compiled_schema->items_schema != NULL) free_child_schema(compiled_schema->items_schema);
+  if(compiled_schema->contains_schema != NULL) free_child_schema(compiled_schema->contains_schema);
+  if(compiled_schema->properties_schema != NULL) free_child_schema(compiled_schema->properties_schema);
 
   xfree(compiled_schema);
 }

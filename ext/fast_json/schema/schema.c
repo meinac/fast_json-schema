@@ -20,7 +20,7 @@ VALUE rb_validate_with_schema(VALUE self, VALUE compiled_schema_obj, VALUE data,
 
   if(NIL_P(context_pointer)) {
     context_s.path[0] = root_path_str;
-    context_s.depth = 1;
+    context_s.depth = 0;
 
     context = &context_s;
   } else {

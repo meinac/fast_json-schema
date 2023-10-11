@@ -1,6 +1,20 @@
 #include "validate_array.h"
 #include "error.h"
 
+static void validate_items(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
+  long i;
+
+  context->depth++;
+
+  for(i = 0; i < RARRAY_LEN(data); i++) {
+    context->path[context->depth] = LONG2NUM(i);
+
+    compiled_schema->validation_function(schema, compiled_schema->items_schema, rb_ary_entry(data, i), context);
+  }
+
+  context->depth--;
+}
+
 void validate_array(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   if(!RB_TYPE_P(data, T_ARRAY))
     return yield_error(compiled_schema, data, context, "type_array");
@@ -22,4 +36,7 @@ void validate_array(VALUE schema, CompiledSchema *compiled_schema, VALUE data, C
     if(RARRAY_LEN(unique_arr) < RARRAY_LEN(data))
       yield_error(compiled_schema, data, context, "uniqueItems");
   }
+
+  if(compiled_schema->items_schema != NULL)
+    validate_items(schema, compiled_schema, data, context);
 }

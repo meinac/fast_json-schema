@@ -1,6 +1,7 @@
 #include "compiled_schema.h"
 #include "keywords.h"
 #include "validate.h"
+#include "path.h"
 #include "value_pointer_caster.h"
 
 #define ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(keyword, type)         \
@@ -28,6 +29,18 @@
        RB_TYPE_P(keyword##_val, type_2) ||                                       \
        RB_TYPE_P(keyword##_val, type_3))                                         \
       compiled_schema->keyword##_val = keyword##_val;                            \
+  } while(0);
+
+#define ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(keyword)                                  \
+  do {                                                                             \
+    VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);               \
+                                                                                   \
+    if(!NIL_P(keyword##_val)) {                                                    \
+      VALUE child_path = new_path(path, keyword##_str);                            \
+      CompiledSchema *child_schema = compile(keyword##_val, ref_hash, child_path); \
+                                                                                   \
+      compiled_schema->keyword##_schema = child_schema;                            \
+    }                                                                              \
   } while(0);
 
 VALUE compiled_schema_class;
@@ -63,7 +76,12 @@ static void mark_compiled_schema(void *ptr) {
 }
 
 static void free_compiled_schema(void *ptr) {
-  xfree(ptr);
+  CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
+
+  if(compiled_schema->items_schema != NULL) free_compiled_schema(compiled_schema->items_schema);
+  if(compiled_schema->contains_schema != NULL) free_compiled_schema(compiled_schema->contains_schema);
+
+  xfree(compiled_schema);
 }
 
 /*
@@ -135,6 +153,8 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
   compiled_schema->minLength_val = Qundef;
   compiled_schema->pattern_val = Qundef;
 
+  compiled_schema->items_schema = NULL;
+  compiled_schema->contains_schema = NULL;
   compiled_schema->maxItems_val = Qundef;
   compiled_schema->minItems_val = Qundef;
   compiled_schema->uniqueItems_val = Qundef;
@@ -205,6 +225,8 @@ static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path) {
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minLength, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(pattern, T_STRING);
 
+  ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(items);
+  ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(contains);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxItems, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minItems, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(uniqueItems, T_TRUE, T_FALSE);

@@ -18,6 +18,13 @@ VALUE rb_validate_with_schema(VALUE self, VALUE compiled_schema_obj, VALUE data,
   Context context_s;
   Context *context;
 
+  /*
+  * TODO:
+  * I am highly concerned about the security of this hack as users can provide
+  * integer values to this method which can point to a random place in memory.
+  * Maybe I should return back to using Ruby typed Context struct.
+  * I will sleep on this idea.
+  */
   if(NIL_P(context_pointer)) {
     context_s.path[0] = root_path_str;
     context_s.depth = 0;

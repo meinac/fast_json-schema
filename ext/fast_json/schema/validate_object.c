@@ -8,7 +8,7 @@ static void validate_required(VALUE schema, CompiledSchema *compiled_schema, VAL
   for(i = 0; i < RARRAY_LEN(required_val); i++) {
     VALUE entry = rb_ary_entry(required_val, i);
 
-    if(rb_funcall(data, rb_intern("key?"), 1, entry) == Qfalse)
+    if(rb_hash_lookup2(data, entry, Qundef) == Qundef)
       yield_error(compiled_schema, data, context, "required");
   }
 }

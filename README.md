@@ -60,7 +60,7 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `properties` &cross;
     - `maxProperties` &check;
     - `minProperties` &check;
-    - `required` &cross;
+    - `required` &check;
     - `dependentRequired` &cross;
 - **Formats**
     - Enabling/disabling the `format` as assertion &cross;

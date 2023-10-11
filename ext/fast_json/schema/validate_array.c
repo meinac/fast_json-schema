@@ -32,6 +32,11 @@ static void validate_contains(VALUE schema, CompiledSchema *compiled_schema, VAL
 
   if(valid_count == 0)
     yield_error(compiled_schema->contains_schema, data, context, "contains");
+
+  if(RB_INTEGER_TYPE_P(compiled_schema->maxContains_val)) {
+    if(valid_count > NUM2LONG(compiled_schema->maxContains_val))
+      yield_error(compiled_schema, data, context, "maxContains");
+  }
 }
 
 void validate_array(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {

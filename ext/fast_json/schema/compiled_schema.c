@@ -75,6 +75,11 @@ static void mark_compiled_schema(void *ptr) {
   if(compiled_schema->uniqueItems_val != Qundef) rb_gc_mark(compiled_schema->uniqueItems_val);
   if(compiled_schema->maxContains_val != Qundef) rb_gc_mark(compiled_schema->maxContains_val);
   if(compiled_schema->minContains_val != Qundef) rb_gc_mark(compiled_schema->minContains_val);
+
+  if(compiled_schema->maxProperties_val != Qundef) rb_gc_mark(compiled_schema->maxProperties_val);
+  if(compiled_schema->minProperties_val != Qundef) rb_gc_mark(compiled_schema->minProperties_val);
+  if(compiled_schema->required_val != Qundef) rb_gc_mark(compiled_schema->required_val);
+  if(compiled_schema->dependentRequired_val != Qundef) rb_gc_mark(compiled_schema->dependentRequired_val);
 }
 
 static void free_compiled_schema(void *ptr) {
@@ -84,6 +89,7 @@ static void free_compiled_schema(void *ptr) {
 
   if(compiled_schema->items_schema != NULL) free_compiled_schema(compiled_schema->items_schema);
   if(compiled_schema->contains_schema != NULL) free_compiled_schema(compiled_schema->contains_schema);
+  if(compiled_schema->properties_schema != NULL) free_compiled_schema(compiled_schema->properties_schema);
 
   xfree(compiled_schema);
 }
@@ -117,6 +123,11 @@ static void compact_compiled_schema(void *ptr) {
   if(compiled_schema->uniqueItems_val != Qundef) compiled_schema->uniqueItems_val = rb_gc_location(compiled_schema->uniqueItems_val);
   if(compiled_schema->maxContains_val != Qundef) compiled_schema->maxContains_val = rb_gc_location(compiled_schema->maxContains_val);
   if(compiled_schema->minContains_val != Qundef) compiled_schema->minContains_val = rb_gc_location(compiled_schema->minContains_val);
+
+  if(compiled_schema->maxProperties_val != Qundef) compiled_schema->maxProperties_val = rb_gc_location(compiled_schema->maxProperties_val);
+  if(compiled_schema->minProperties_val != Qundef) compiled_schema->minProperties_val = rb_gc_location(compiled_schema->minProperties_val);
+  if(compiled_schema->required_val != Qundef) compiled_schema->required_val = rb_gc_location(compiled_schema->required_val);
+  if(compiled_schema->dependentRequired_val != Qundef) compiled_schema->dependentRequired_val = rb_gc_location(compiled_schema->dependentRequired_val);
 }
 
 const rb_data_type_t compiled_schema_type = {
@@ -166,6 +177,12 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
   compiled_schema->uniqueItems_val = Qundef;
   compiled_schema->maxContains_val = Qundef;
   compiled_schema->minContains_val = Qundef;
+
+  compiled_schema->properties_schema = NULL;
+  compiled_schema->maxProperties_val = Qundef;
+  compiled_schema->minProperties_val = Qundef;
+  compiled_schema->required_val = Qundef;
+  compiled_schema->dependentRequired_val = Qundef;
 
   return compiled_schema;
 }
@@ -240,6 +257,12 @@ static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, sc
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(uniqueItems, T_TRUE, T_FALSE);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxContains, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minContains, T_FIXNUM, T_BIGNUM);
+
+  ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(properties);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxProperties, T_FIXNUM, T_BIGNUM);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minProperties, T_FIXNUM, T_BIGNUM);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(required, T_ARRAY);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(dependentRequired, T_HASH);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 

@@ -49,6 +49,12 @@ typedef struct compiled_schema_struct {
   VALUE uniqueItems_val;
   VALUE maxContains_val;
   VALUE minContains_val;
+
+  CompiledSchema *properties_schema;
+  VALUE maxProperties_val;
+  VALUE minProperties_val;
+  VALUE required_val;
+  VALUE dependentRequired_val;
 } CompiledSchema;
 
 #endif

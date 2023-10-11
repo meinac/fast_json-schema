@@ -49,9 +49,9 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `minLength` &check;
     - `pattern` &check;
 - **Validation Keywords for Arrays**
-    - `maxItems` &cross;
-    - `minItems` &cross;
-    - `uniqueItems` &cross;
+    - `maxItems` &check;
+    - `minItems` &check;
+    - `uniqueItems` &check;
     - `maxContains` &cross;
     - `minContains` &cross;
 - **Validation Keywords for Objects**

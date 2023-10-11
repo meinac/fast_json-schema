@@ -54,6 +54,12 @@ static void mark_compiled_schema(void *ptr) {
   if(compiled_schema->maxLength_val != Qundef) rb_gc_mark(compiled_schema->maxLength_val);
   if(compiled_schema->minLength_val != Qundef) rb_gc_mark(compiled_schema->minLength_val);
   if(compiled_schema->pattern_val != Qundef) rb_gc_mark(compiled_schema->pattern_val);
+
+  if(compiled_schema->maxItems_val != Qundef) rb_gc_mark(compiled_schema->maxItems_val);
+  if(compiled_schema->minItems_val != Qundef) rb_gc_mark(compiled_schema->minItems_val);
+  if(compiled_schema->uniqueItems_val != Qundef) rb_gc_mark(compiled_schema->uniqueItems_val);
+  if(compiled_schema->maxContains_val != Qundef) rb_gc_mark(compiled_schema->maxContains_val);
+  if(compiled_schema->minContains_val != Qundef) rb_gc_mark(compiled_schema->minContains_val);
 }
 
 static void free_compiled_schema(void *ptr) {
@@ -81,6 +87,12 @@ static void compact_compiled_schema(void *ptr) {
   if(compiled_schema->maxLength_val != Qundef) compiled_schema->maxLength_val = rb_gc_location(compiled_schema->maxLength_val);
   if(compiled_schema->minLength_val != Qundef) compiled_schema->minLength_val = rb_gc_location(compiled_schema->minLength_val);
   if(compiled_schema->pattern_val != Qundef) compiled_schema->pattern_val = rb_gc_location(compiled_schema->pattern_val);
+
+  if(compiled_schema->maxItems_val != Qundef) compiled_schema->maxItems_val = rb_gc_location(compiled_schema->maxItems_val);
+  if(compiled_schema->minItems_val != Qundef) compiled_schema->minItems_val = rb_gc_location(compiled_schema->minItems_val);
+  if(compiled_schema->uniqueItems_val != Qundef) compiled_schema->uniqueItems_val = rb_gc_location(compiled_schema->uniqueItems_val);
+  if(compiled_schema->maxContains_val != Qundef) compiled_schema->maxContains_val = rb_gc_location(compiled_schema->maxContains_val);
+  if(compiled_schema->minContains_val != Qundef) compiled_schema->minContains_val = rb_gc_location(compiled_schema->minContains_val);
 }
 
 const rb_data_type_t compiled_schema_type = {
@@ -122,6 +134,12 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
   compiled_schema->maxLength_val = Qundef;
   compiled_schema->minLength_val = Qundef;
   compiled_schema->pattern_val = Qundef;
+
+  compiled_schema->maxItems_val = Qundef;
+  compiled_schema->minItems_val = Qundef;
+  compiled_schema->uniqueItems_val = Qundef;
+  compiled_schema->maxContains_val = Qundef;
+  compiled_schema->minContains_val = Qundef;
 
   return compiled_schema;
 }
@@ -186,6 +204,12 @@ static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path) {
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxLength, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minLength, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(pattern, T_STRING);
+
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxItems, T_FIXNUM, T_BIGNUM);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minItems, T_FIXNUM, T_BIGNUM);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(uniqueItems, T_TRUE, T_FALSE);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxContains, T_FIXNUM, T_BIGNUM);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minContains, T_FIXNUM, T_BIGNUM);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 

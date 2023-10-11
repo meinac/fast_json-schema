@@ -34,6 +34,12 @@ typedef struct compiled_schema_struct {
   VALUE maxLength_val;
   VALUE minLength_val;
   VALUE pattern_val;
+
+  VALUE maxItems_val;
+  VALUE minItems_val;
+  VALUE uniqueItems_val;
+  VALUE maxContains_val;
+  VALUE minContains_val;
 } CompiledSchema;
 
 #endif

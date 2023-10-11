@@ -52,8 +52,9 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `maxItems` &check;
     - `minItems` &check;
     - `uniqueItems` &check;
-    - `maxContains` &cross;
-    - `minContains` &cross;
+    - `contains` &check;
+    - `maxContains` &check;
+    - `minContains` &check;
 - **Validation Keywords for Objects**
     - `maxProperties` &cross;
     - `minProperties` &cross;

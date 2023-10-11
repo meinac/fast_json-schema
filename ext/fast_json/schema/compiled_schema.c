@@ -4,7 +4,7 @@
 #include "path.h"
 #include "value_pointer_caster.h"
 
-#define ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(keyword, type)         \
+#define ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(keyword, type)       \
   do {                                                               \
     VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str); \
                                                                      \
@@ -218,10 +218,10 @@ static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, sc
 
   compiled_schema->validation_function = validate;
 
-  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(id, T_STRING);
-  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(ref, T_STRING);
-  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(recursiveAnchor, T_STRING);
-  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(recursiveRef, T_STRING);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(id, T_STRING);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(ref, T_STRING);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(recursiveAnchor, T_STRING);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(recursiveRef, T_STRING);
 
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(multipleOf, T_FIXNUM, T_BIGNUM, T_FLOAT);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(maximum, T_FIXNUM, T_BIGNUM, T_FLOAT);
@@ -231,7 +231,7 @@ static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, sc
 
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxLength, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minLength, T_FIXNUM, T_BIGNUM);
-  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA(pattern, T_STRING);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(pattern, T_STRING);
 
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(items);
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(contains);

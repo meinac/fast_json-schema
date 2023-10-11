@@ -62,11 +62,7 @@ VALUE compiled_schema_class;
 * values which should be already marked by the schema hash object provided while creating
 * the `FastJSON::Schema` instance but it's better to be safe than sorry.
 */
-static void mark_compiled_schema(void *ptr) {
-  CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
-
-  if(IS_CHILD(compiled_schema)) return;
-
+static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_VALUE(id);
   MARK_VALUE(ref);
   MARK_VALUE(recursiveAnchor);
@@ -92,12 +88,24 @@ static void mark_compiled_schema(void *ptr) {
   MARK_VALUE(minProperties);
   MARK_VALUE(required);
   MARK_VALUE(dependentRequired);
+
+  if(compiled_schema->items_schema != NULL) mark_compiled_schema(compiled_schema->items_schema);
+  if(compiled_schema->contains_schema != NULL) mark_compiled_schema(compiled_schema->contains_schema);
+  if(compiled_schema->properties_schema != NULL) mark_compiled_schema(compiled_schema->properties_schema);
 }
 
-static void free_child_schema(CompiledSchema *compiled_schema) {
-  if(compiled_schema->items_schema != NULL) free_child_schema(compiled_schema->items_schema);
-  if(compiled_schema->contains_schema != NULL) free_child_schema(compiled_schema->contains_schema);
-  if(compiled_schema->properties_schema != NULL) free_child_schema(compiled_schema->properties_schema);
+static void rb_mark_compiled_schema(void *ptr) {
+  CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
+
+  if(IS_CHILD(compiled_schema)) return;
+
+  mark_compiled_schema(compiled_schema);
+}
+
+static void free_compiled_schema(CompiledSchema *compiled_schema) {
+  if(compiled_schema->items_schema != NULL) free_compiled_schema(compiled_schema->items_schema);
+  if(compiled_schema->contains_schema != NULL) free_compiled_schema(compiled_schema->contains_schema);
+  if(compiled_schema->properties_schema != NULL) free_compiled_schema(compiled_schema->properties_schema);
 
   xfree(compiled_schema);
 }
@@ -109,27 +117,19 @@ static void free_child_schema(CompiledSchema *compiled_schema) {
 * by its parent. In that case, we shouldn't free the memory block addressed by that pointer and
 * let the root compiled schema to handle freeing them.
 */
-static void free_compiled_schema(void *ptr) {
+static void rb_free_compiled_schema(void *ptr) {
   CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
 
   if(IS_CHILD(compiled_schema)) return;
 
-  if(compiled_schema->items_schema != NULL) free_child_schema(compiled_schema->items_schema);
-  if(compiled_schema->contains_schema != NULL) free_child_schema(compiled_schema->contains_schema);
-  if(compiled_schema->properties_schema != NULL) free_child_schema(compiled_schema->properties_schema);
-
-  xfree(compiled_schema);
+  free_compiled_schema(compiled_schema);
 }
 
 /*
 * Here I am re-assigning all the values including the immediate ones which can not be
 * compacted as they are located in stack but there is no harm re-assigning them.
 */
-static void compact_compiled_schema(void *ptr) {
-  CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
-
-  if(IS_CHILD(compiled_schema)) return;
-
+static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_VALUE(id);
   COMPACT_VALUE(ref);
   COMPACT_VALUE(recursiveAnchor);
@@ -155,15 +155,27 @@ static void compact_compiled_schema(void *ptr) {
   COMPACT_VALUE(minProperties);
   COMPACT_VALUE(required);
   COMPACT_VALUE(dependentRequired);
+
+  if(compiled_schema->items_schema != NULL) compact_compiled_schema(compiled_schema->items_schema);
+  if(compiled_schema->contains_schema != NULL) compact_compiled_schema(compiled_schema->contains_schema);
+  if(compiled_schema->properties_schema != NULL) compact_compiled_schema(compiled_schema->properties_schema);
+}
+
+static void rb_compact_compiled_schema(void *ptr) {
+  CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
+
+  if(IS_CHILD(compiled_schema)) return;
+
+  compact_compiled_schema(compiled_schema);
 }
 
 const rb_data_type_t compiled_schema_type = {
   "Schema::CompiledSchema",
   {
-    mark_compiled_schema,
-    free_compiled_schema,
+    rb_mark_compiled_schema,
+    rb_free_compiled_schema,
     0,
-    compact_compiled_schema
+    rb_compact_compiled_schema
   },
   0,
   0,

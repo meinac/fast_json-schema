@@ -57,7 +57,7 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `maxContains` &check;
     - `minContains` &check;
 - **Validation Keywords for Objects**
-    - `properties` &cross;
+    - `properties` &check;
     - `maxProperties` &check;
     - `minProperties` &check;
     - `required` &check;

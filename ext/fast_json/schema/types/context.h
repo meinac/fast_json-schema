@@ -11,3 +11,13 @@ typedef struct context_struct {
 } Context;
 
 #endif
+
+#define INCR_CONTEXT(context)                             \
+  do {                                                    \
+    if(++context->depth > MAX_CONTEXT_DEPTH)              \
+      rb_raise(rb_eRuntimeError, "Document is too deep"); \
+  } while(0);
+
+#define DECR_CONTEXT(context) context->depth--;
+
+#define ADD_TO_CONTEXT(context, value) context->path[context->depth] = value;

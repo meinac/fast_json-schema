@@ -5,15 +5,15 @@
 static void validate_items(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   long i;
 
-  context->depth++;
+  INCR_CONTEXT(context);
 
   for(i = 0; i < RARRAY_LEN(data); i++) {
-    context->path[context->depth] = LONG2NUM(i);
+    ADD_TO_CONTEXT(context, LONG2NUM(i));
 
     compiled_schema->validation_function(schema, compiled_schema->items_schema, rb_ary_entry(data, i), context);
   }
 
-  context->depth--;
+  DECR_CONTEXT(context);
 }
 
 static void validate_contains(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {

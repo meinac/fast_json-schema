@@ -3,7 +3,10 @@
 
 #define NO_FLAG 0
 #define ROOT_SCHEMA (1 << 0)
-#define IS_CHILD(compiled_schema) (compiled_schema->flags & ROOT_SCHEMA) == 0
+#define EXPOSE_TO_RUBY (1 << 1)
+
+#define IS_CHILD(compiled_schema) ((compiled_schema->flags & ROOT_SCHEMA) == 0)
+#define INTERNAL_ONLY(compiled_schema) ((compiled_schema->flags & EXPOSE_TO_RUBY) == 0)
 
 #ifndef FAST_JSON_SCHEMA_COMPILED_SCHEMA_TYPE
 #define FAST_JSON_SCHEMA_COMPILED_SCHEMA_TYPE 1
@@ -50,7 +53,7 @@ typedef struct compiled_schema_struct {
   VALUE maxContains_val;
   VALUE minContains_val;
 
-  CompiledSchema *properties_schema;
+  VALUE properties_val;
   VALUE maxProperties_val;
   VALUE minProperties_val;
   VALUE required_val;

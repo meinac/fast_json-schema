@@ -3,6 +3,7 @@
 #include "validate.h"
 #include "path.h"
 #include "value_pointer_caster.h"
+#include "properties_val.h"
 
 #define ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(keyword, type)       \
   do {                                                               \
@@ -63,6 +64,8 @@ VALUE compiled_schema_class;
 * the `FastJSON::Schema` instance but it's better to be safe than sorry.
 */
 static void mark_compiled_schema(CompiledSchema *compiled_schema) {
+  rb_gc_mark(compiled_schema->path);
+
   MARK_VALUE(id);
   MARK_VALUE(ref);
   MARK_VALUE(recursiveAnchor);
@@ -84,6 +87,7 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_VALUE(maxContains);
   MARK_VALUE(minContains);
 
+  MARK_VALUE(properties);
   MARK_VALUE(maxProperties);
   MARK_VALUE(minProperties);
   MARK_VALUE(required);
@@ -91,13 +95,12 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
 
   if(compiled_schema->items_schema != NULL) mark_compiled_schema(compiled_schema->items_schema);
   if(compiled_schema->contains_schema != NULL) mark_compiled_schema(compiled_schema->contains_schema);
-  if(compiled_schema->properties_schema != NULL) mark_compiled_schema(compiled_schema->properties_schema);
 }
 
 static void rb_mark_compiled_schema(void *ptr) {
   CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
 
-  if(IS_CHILD(compiled_schema)) return;
+  if(INTERNAL_ONLY(compiled_schema)) return;
 
   mark_compiled_schema(compiled_schema);
 }
@@ -105,22 +108,22 @@ static void rb_mark_compiled_schema(void *ptr) {
 static void free_compiled_schema(CompiledSchema *compiled_schema) {
   if(compiled_schema->items_schema != NULL) free_compiled_schema(compiled_schema->items_schema);
   if(compiled_schema->contains_schema != NULL) free_compiled_schema(compiled_schema->contains_schema);
-  if(compiled_schema->properties_schema != NULL) free_compiled_schema(compiled_schema->properties_schema);
 
   xfree(compiled_schema);
 }
 
 /*
 * This gets called by the Ruby GC for each `FastJSON::Schema::CompiledSchema` instance.
-* As we are also wrapping the child compiled schemas into Ruby instances to pass them between
-* Ruby methods, the pointer we receive here can refer to a child compiled schema which is needed
-* by its parent. In that case, we shouldn't free the memory block addressed by that pointer and
-* let the root compiled schema to handle freeing them.
+* As we are also wrapping the child compiled schemas(they are internal) into Ruby instances
+* to pass them between Ruby methods, the pointer we receive here can refer to a child compiled
+* schema which is needed by its parent.
+* In that case, we shouldn't free the memory block addressed by that pointer and let the root compiled
+* schema to handle freeing them.
 */
 static void rb_free_compiled_schema(void *ptr) {
   CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
 
-  if(IS_CHILD(compiled_schema)) return;
+  if(INTERNAL_ONLY(compiled_schema)) return;
 
   free_compiled_schema(compiled_schema);
 }
@@ -130,6 +133,8 @@ static void rb_free_compiled_schema(void *ptr) {
 * compacted as they are located in stack but there is no harm re-assigning them.
 */
 static void compact_compiled_schema(CompiledSchema *compiled_schema) {
+  compiled_schema->path = rb_gc_location(compiled_schema->path);
+
   COMPACT_VALUE(id);
   COMPACT_VALUE(ref);
   COMPACT_VALUE(recursiveAnchor);
@@ -151,6 +156,7 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_VALUE(maxContains);
   COMPACT_VALUE(minContains);
 
+  COMPACT_VALUE(properties);
   COMPACT_VALUE(maxProperties);
   COMPACT_VALUE(minProperties);
   COMPACT_VALUE(required);
@@ -158,13 +164,12 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
 
   if(compiled_schema->items_schema != NULL) compact_compiled_schema(compiled_schema->items_schema);
   if(compiled_schema->contains_schema != NULL) compact_compiled_schema(compiled_schema->contains_schema);
-  if(compiled_schema->properties_schema != NULL) compact_compiled_schema(compiled_schema->properties_schema);
 }
 
 static void rb_compact_compiled_schema(void *ptr) {
   CompiledSchema *compiled_schema = (CompiledSchema *)ptr;
 
-  if(IS_CHILD(compiled_schema)) return;
+  if(INTERNAL_ONLY(compiled_schema)) return;
 
   compact_compiled_schema(compiled_schema);
 }
@@ -217,7 +222,7 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
   compiled_schema->maxContains_val = Qundef;
   compiled_schema->minContains_val = Qundef;
 
-  compiled_schema->properties_schema = NULL;
+  compiled_schema->properties_val = Qundef;
   compiled_schema->maxProperties_val = Qundef;
   compiled_schema->minProperties_val = Qundef;
   compiled_schema->required_val = Qundef;
@@ -252,7 +257,7 @@ static validation_function type_validation_function(VALUE ruby_schema) {
   return no_op_validate;
 }
 
-static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, schema_flag_t flags) {
+CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, schema_flag_t flags) {
   CompiledSchema *compiled_schema = create_compiled_schema(path);
 
   compiled_schema->flags = flags;
@@ -297,11 +302,12 @@ static CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, sc
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxContains, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minContains, T_FIXNUM, T_BIGNUM);
 
-  ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(properties);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxProperties, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minProperties, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(required, T_ARRAY);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(dependentRequired, T_HASH);
+
+  compile_properties_val(compiled_schema, ruby_schema, ref_hash, path);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 
@@ -319,7 +325,8 @@ void compile_schema(VALUE self) {
   VALUE ruby_schema = rb_ivar_get(self, rb_intern("@ruby_schema"));
   VALUE ref_hash = rb_hash_new();
 
-  CompiledSchema *compiled_schema = compile(ruby_schema, ref_hash, root_path_str, ROOT_SCHEMA);
+  schema_flag_t flags = ROOT_SCHEMA | EXPOSE_TO_RUBY;
+  CompiledSchema *compiled_schema = compile(ruby_schema, ref_hash, root_path_str, flags);
   VALUE compiled_schema_obj = TypedData_Wrap_Struct(compiled_schema_class, &compiled_schema_type, compiled_schema);
 
   rb_ivar_set(self, rb_intern("compiled_schema"), compiled_schema_obj);

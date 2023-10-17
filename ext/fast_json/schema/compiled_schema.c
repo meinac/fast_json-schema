@@ -5,6 +5,14 @@
 #include "value_pointer_caster.h"
 #include "properties_val.h"
 
+#define ASSIGN_ANY_VALUE_TO_COMPILED_SCHEMA(keyword)                           \
+  do {                                                                         \
+    VALUE keyword##_val = rb_hash_lookup2(ruby_schema, keyword##_str, Qundef); \
+                                                                               \
+    if(keyword##_val != Qundef)                                                \
+      compiled_schema->keyword##_val = keyword##_val;                          \
+  } while(0);
+
 #define ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(keyword, type)       \
   do {                                                               \
     VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str); \
@@ -70,6 +78,9 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_VALUE(ref);
   MARK_VALUE(recursiveAnchor);
   MARK_VALUE(recursiveRef);
+
+  MARK_VALUE(const);
+  MARK_VALUE(enum);
 
   MARK_VALUE(multipleOf);
   MARK_VALUE(maximum);
@@ -140,6 +151,9 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_VALUE(recursiveAnchor);
   COMPACT_VALUE(recursiveRef);
 
+  COMPACT_VALUE(const);
+  COMPACT_VALUE(enum);
+
   COMPACT_VALUE(multipleOf);
   COMPACT_VALUE(maximum);
   COMPACT_VALUE(exclusiveMaximum);
@@ -203,6 +217,9 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
   compiled_schema->ref_val = Qundef;
   compiled_schema->recursiveAnchor_val = Qundef;
   compiled_schema->recursiveRef_val = Qundef;
+
+  compiled_schema->const_val = Qundef;
+  compiled_schema->enum_val = Qundef;
 
   compiled_schema->multipleOf_val = Qundef;
   compiled_schema->maximum_val = Qundef;
@@ -283,6 +300,9 @@ CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, schema_fl
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(ref, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(recursiveAnchor, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(recursiveRef, T_STRING);
+
+  ASSIGN_ANY_VALUE_TO_COMPILED_SCHEMA(const);
+  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(enum, T_ARRAY);
 
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(multipleOf, T_FIXNUM, T_BIGNUM, T_FLOAT);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(maximum, T_FIXNUM, T_BIGNUM, T_FLOAT);

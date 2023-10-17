@@ -9,6 +9,26 @@ void false_validate(VALUE schema, CompiledSchema *compiled_schema, VALUE data, C
   yield_error(compiled_schema, data, context, "false_schema");
 }
 
+static void validate_const(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
+  VALUE equal = rb_funcall(compiled_schema->const_val, rb_intern("=="), 1, data);
+
+  if(equal == Qfalse)
+    yield_error(compiled_schema, data, context, "const");
+}
+
+static void validate_enum(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
+  VALUE include = rb_funcall(compiled_schema->enum_val, rb_intern("include?"), 1, data);
+
+  if(include == Qfalse)
+    yield_error(compiled_schema, data, context, "enum");
+}
+
 void validate(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   compiled_schema->type_validation_function(schema, compiled_schema, data, context);
+
+  if(compiled_schema->const_val != Qundef)
+    validate_const(schema, compiled_schema, data, context);
+
+  if(compiled_schema->enum_val != Qundef)
+    validate_enum(schema, compiled_schema, data, context);
 }

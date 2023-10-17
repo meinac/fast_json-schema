@@ -36,8 +36,8 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `not` &cross;
 - **Validation keywords for any instance type**
     - `type` &check;
-    - `enum` &cross;
-    - `const` &cross;
+    - `enum` &check;
+    - `const` &check;
 - **Validation Keywords for Numeric Instances (number and integer)**
     - `multipleOf` &check;
     - `maximum` &check;

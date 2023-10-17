@@ -35,6 +35,9 @@ typedef struct compiled_schema_struct {
   validation_function validation_function;
   validation_function type_validation_function;
 
+  VALUE const_val;
+  VALUE enum_val;
+
   VALUE multipleOf_val;
   VALUE maximum_val;
   VALUE exclusiveMaximum_val;

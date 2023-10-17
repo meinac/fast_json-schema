@@ -4,6 +4,8 @@
 static VALUE error_class;
 
 void yield_error(CompiledSchema *compiled_schema, VALUE data, Context *context, const char *type) {
+  JUMP_IF_SET(context);
+
   VALUE args[4];
   args[0] = compiled_schema->path;
   args[1] = data;

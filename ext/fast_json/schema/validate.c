@@ -1,6 +1,23 @@
 #include "validate.h"
 #include "error.h"
 
+bool is_valid(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
+  int result;
+  SET_JUMP(context, result);
+
+  if (result) {
+    RESET_JUMP(context);
+
+    return false;
+  } else {
+    compiled_schema->validation_function(schema, compiled_schema, data, context);
+  }
+
+  RESET_JUMP(context);
+
+  return true;
+}
+
 void no_op_validate(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   return;
 }

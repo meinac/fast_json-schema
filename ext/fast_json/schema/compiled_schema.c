@@ -279,6 +279,13 @@ CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, schema_fl
 
   compiled_schema->flags = flags;
 
+  /*
+  * TODO: Optimize this.
+  * It's better to return just `NULL` if the schema is not root
+  * and the given ruby schema is not Hash or Qfalse.
+  */
+  compiled_schema->validation_function = no_op_validate;
+
   if(ruby_schema == Qfalse)
     compiled_schema->validation_function = false_validate;
 

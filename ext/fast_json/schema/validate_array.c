@@ -2,6 +2,8 @@
 #include "error.h"
 #include "value_pointer_caster.h"
 
+extern bool is_valid(VALUE, CompiledSchema *, VALUE, Context *);
+
 static void validate_items(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   long i;
 
@@ -19,14 +21,12 @@ static void validate_items(VALUE schema, CompiledSchema *compiled_schema, VALUE 
 static void validate_contains(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   long i, valid_count = 0;
 
-  VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema->contains_schema);
-
   for(i = 0; i < RARRAY_LEN(data); i++) {
     VALUE entry = rb_ary_entry(data, i);
-    VALUE enumerator = rb_funcall(schema, rb_intern("validate_with_schema"), 3, compiled_schema_obj, entry, PTR2NUM(context));
-    VALUE none = rb_funcall(enumerator, rb_intern("none?"), 0);
 
-    if(none == Qtrue)
+    bool valid = is_valid(schema, compiled_schema->contains_schema, entry, context);
+
+    if(valid)
       valid_count++;
   }
 

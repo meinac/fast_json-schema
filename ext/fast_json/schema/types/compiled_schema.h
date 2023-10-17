@@ -38,6 +38,10 @@ typedef struct compiled_schema_struct {
   VALUE const_val;
   VALUE enum_val;
 
+  CompiledSchema *if_schema;
+  CompiledSchema *then_schema;
+  CompiledSchema *else_schema;
+
   VALUE multipleOf_val;
   VALUE maximum_val;
   VALUE exclusiveMaximum_val;

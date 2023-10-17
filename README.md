@@ -26,9 +26,9 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `$recursiveAnchor` &cross;
     - `$recursiveRef` &cross;
 - **Keywords for Applying Subschemas Conditionally**
-    - `if` &cross;
-    - `then` &cross;
-    - `else` &cross;
+    - `if` &check;
+    - `then` &check;
+    - `else` &check;
 - **Keywords for Applying Subschemas With Boolean Logic**
     - `allOf` &cross;
     - `anyOf` &cross;

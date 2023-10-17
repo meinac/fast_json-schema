@@ -48,4 +48,7 @@ void validate(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context
 
   if(compiled_schema->enum_val != Qundef)
     validate_enum(schema, compiled_schema, data, context);
+
+  if(compiled_schema->if_schema != NULL)
+    validate_if(schema, compiled_schema, data, context);
 }

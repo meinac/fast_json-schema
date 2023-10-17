@@ -104,6 +104,10 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_VALUE(required);
   MARK_VALUE(dependentRequired);
 
+  if(compiled_schema->if_schema != NULL) mark_compiled_schema(compiled_schema->if_schema);
+  if(compiled_schema->then_schema != NULL) mark_compiled_schema(compiled_schema->then_schema);
+  if(compiled_schema->else_schema != NULL) mark_compiled_schema(compiled_schema->else_schema);
+
   if(compiled_schema->items_schema != NULL) mark_compiled_schema(compiled_schema->items_schema);
   if(compiled_schema->contains_schema != NULL) mark_compiled_schema(compiled_schema->contains_schema);
 }
@@ -117,6 +121,10 @@ static void rb_mark_compiled_schema(void *ptr) {
 }
 
 static void free_compiled_schema(CompiledSchema *compiled_schema) {
+  if(compiled_schema->if_schema != NULL) free_compiled_schema(compiled_schema->if_schema);
+  if(compiled_schema->then_schema != NULL) free_compiled_schema(compiled_schema->then_schema);
+  if(compiled_schema->else_schema != NULL) free_compiled_schema(compiled_schema->else_schema);
+
   if(compiled_schema->items_schema != NULL) free_compiled_schema(compiled_schema->items_schema);
   if(compiled_schema->contains_schema != NULL) free_compiled_schema(compiled_schema->contains_schema);
 
@@ -176,6 +184,10 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_VALUE(required);
   COMPACT_VALUE(dependentRequired);
 
+  if(compiled_schema->if_schema != NULL) compact_compiled_schema(compiled_schema->if_schema);
+  if(compiled_schema->then_schema != NULL) compact_compiled_schema(compiled_schema->then_schema);
+  if(compiled_schema->else_schema != NULL) compact_compiled_schema(compiled_schema->else_schema);
+
   if(compiled_schema->items_schema != NULL) compact_compiled_schema(compiled_schema->items_schema);
   if(compiled_schema->contains_schema != NULL) compact_compiled_schema(compiled_schema->contains_schema);
 }
@@ -220,6 +232,10 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
 
   compiled_schema->const_val = Qundef;
   compiled_schema->enum_val = Qundef;
+
+  compiled_schema->if_schema = NULL;
+  compiled_schema->then_schema = NULL;
+  compiled_schema->else_schema = NULL;
 
   compiled_schema->multipleOf_val = Qundef;
   compiled_schema->maximum_val = Qundef;
@@ -310,6 +326,10 @@ CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, schema_fl
 
   ASSIGN_ANY_VALUE_TO_COMPILED_SCHEMA(const);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(enum, T_ARRAY);
+
+  ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(if);
+  ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(then);
+  ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(else);
 
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(multipleOf, T_FIXNUM, T_BIGNUM, T_FLOAT);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(maximum, T_FIXNUM, T_BIGNUM, T_FLOAT);

@@ -58,10 +58,28 @@
       compiled_schema->keyword##_val = rb_gc_location(compiled_schema->keyword##_val); \
   } while(0);
 
+#define COMPACT_CHILD_SCHEMA(keyword)                             \
+  do {                                                            \
+    if(compiled_schema->keyword##_schema != NULL)                 \
+      compact_compiled_schema(compiled_schema->keyword##_schema); \
+  } while(0);
+
 #define MARK_VALUE(keyword)                       \
   do {                                            \
     if(compiled_schema->keyword##_val != Qundef)  \
       rb_gc_mark(compiled_schema->keyword##_val); \
+  } while(0);
+
+#define MARK_CHILD_SCHEMA(keyword)                             \
+  do {                                                         \
+    if(compiled_schema->keyword##_schema != NULL)              \
+      mark_compiled_schema(compiled_schema->keyword##_schema); \
+  } while(0);
+
+#define FREE_CHILD_SCHEMA(keyword)                             \
+  do {                                                         \
+    if(compiled_schema->keyword##_schema != NULL)              \
+      free_compiled_schema(compiled_schema->keyword##_schema); \
   } while(0);
 
 VALUE compiled_schema_class;
@@ -104,12 +122,12 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_VALUE(required);
   MARK_VALUE(dependentRequired);
 
-  if(compiled_schema->if_schema != NULL) mark_compiled_schema(compiled_schema->if_schema);
-  if(compiled_schema->then_schema != NULL) mark_compiled_schema(compiled_schema->then_schema);
-  if(compiled_schema->else_schema != NULL) mark_compiled_schema(compiled_schema->else_schema);
+  MARK_CHILD_SCHEMA(if);
+  MARK_CHILD_SCHEMA(then);
+  MARK_CHILD_SCHEMA(else);
 
-  if(compiled_schema->items_schema != NULL) mark_compiled_schema(compiled_schema->items_schema);
-  if(compiled_schema->contains_schema != NULL) mark_compiled_schema(compiled_schema->contains_schema);
+  MARK_CHILD_SCHEMA(items);
+  MARK_CHILD_SCHEMA(contains);
 }
 
 static void rb_mark_compiled_schema(void *ptr) {
@@ -121,12 +139,12 @@ static void rb_mark_compiled_schema(void *ptr) {
 }
 
 static void free_compiled_schema(CompiledSchema *compiled_schema) {
-  if(compiled_schema->if_schema != NULL) free_compiled_schema(compiled_schema->if_schema);
-  if(compiled_schema->then_schema != NULL) free_compiled_schema(compiled_schema->then_schema);
-  if(compiled_schema->else_schema != NULL) free_compiled_schema(compiled_schema->else_schema);
+  FREE_CHILD_SCHEMA(if);
+  FREE_CHILD_SCHEMA(then);
+  FREE_CHILD_SCHEMA(else);
 
-  if(compiled_schema->items_schema != NULL) free_compiled_schema(compiled_schema->items_schema);
-  if(compiled_schema->contains_schema != NULL) free_compiled_schema(compiled_schema->contains_schema);
+  FREE_CHILD_SCHEMA(items);
+  FREE_CHILD_SCHEMA(contains);
 
   xfree(compiled_schema);
 }
@@ -184,12 +202,12 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_VALUE(required);
   COMPACT_VALUE(dependentRequired);
 
-  if(compiled_schema->if_schema != NULL) compact_compiled_schema(compiled_schema->if_schema);
-  if(compiled_schema->then_schema != NULL) compact_compiled_schema(compiled_schema->then_schema);
-  if(compiled_schema->else_schema != NULL) compact_compiled_schema(compiled_schema->else_schema);
+  COMPACT_CHILD_SCHEMA(if);
+  COMPACT_CHILD_SCHEMA(then);
+  COMPACT_CHILD_SCHEMA(else);
 
-  if(compiled_schema->items_schema != NULL) compact_compiled_schema(compiled_schema->items_schema);
-  if(compiled_schema->contains_schema != NULL) compact_compiled_schema(compiled_schema->contains_schema);
+  COMPACT_CHILD_SCHEMA(items);
+  COMPACT_CHILD_SCHEMA(contains);
 }
 
 static void rb_compact_compiled_schema(void *ptr) {

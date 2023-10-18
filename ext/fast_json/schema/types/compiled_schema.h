@@ -42,6 +42,8 @@ typedef struct compiled_schema_struct {
   CompiledSchema *then_schema;
   CompiledSchema *else_schema;
 
+  CompiledSchema *not_schema;
+
   VALUE multipleOf_val;
   VALUE maximum_val;
   VALUE exclusiveMaximum_val;

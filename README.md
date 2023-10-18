@@ -33,7 +33,7 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `allOf` &cross;
     - `anyOf` &cross;
     - `oneOf` &cross;
-    - `not` &cross;
+    - `not` &check;
 - **Validation keywords for any instance type**
     - `type` &check;
     - `enum` &check;

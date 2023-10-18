@@ -1,6 +1,7 @@
 #include <ruby.h>
 #include "compiled_schema.h"
 #include "if.h"
+#include "not.h"
 #include "validate_array.h"
 #include "validate_bool.h"
 #include "validate_integer.h"

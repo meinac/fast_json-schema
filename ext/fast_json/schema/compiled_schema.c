@@ -126,6 +126,8 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_CHILD_SCHEMA(then);
   MARK_CHILD_SCHEMA(else);
 
+  MARK_CHILD_SCHEMA(not);
+
   MARK_CHILD_SCHEMA(items);
   MARK_CHILD_SCHEMA(contains);
 }
@@ -142,6 +144,8 @@ static void free_compiled_schema(CompiledSchema *compiled_schema) {
   FREE_CHILD_SCHEMA(if);
   FREE_CHILD_SCHEMA(then);
   FREE_CHILD_SCHEMA(else);
+
+  FREE_CHILD_SCHEMA(not);
 
   FREE_CHILD_SCHEMA(items);
   FREE_CHILD_SCHEMA(contains);
@@ -206,6 +210,8 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_CHILD_SCHEMA(then);
   COMPACT_CHILD_SCHEMA(else);
 
+  COMPACT_CHILD_SCHEMA(not);
+
   COMPACT_CHILD_SCHEMA(items);
   COMPACT_CHILD_SCHEMA(contains);
 }
@@ -254,6 +260,8 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
   compiled_schema->if_schema = NULL;
   compiled_schema->then_schema = NULL;
   compiled_schema->else_schema = NULL;
+
+  compiled_schema->not_schema = NULL;
 
   compiled_schema->multipleOf_val = Qundef;
   compiled_schema->maximum_val = Qundef;
@@ -348,6 +356,8 @@ CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, schema_fl
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(if);
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(then);
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(else);
+
+  ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(not);
 
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(multipleOf, T_FIXNUM, T_BIGNUM, T_FLOAT);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(maximum, T_FIXNUM, T_BIGNUM, T_FLOAT);

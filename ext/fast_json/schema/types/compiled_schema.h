@@ -42,6 +42,9 @@ typedef struct compiled_schema_struct {
   CompiledSchema *then_schema;
   CompiledSchema *else_schema;
 
+  VALUE allOf_val;
+  VALUE anyOf_val;
+  VALUE oneOf_val;
   CompiledSchema *not_schema;
 
   VALUE multipleOf_val;

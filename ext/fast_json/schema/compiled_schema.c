@@ -4,6 +4,7 @@
 #include "path.h"
 #include "value_pointer_caster.h"
 #include "properties_val.h"
+#include "schema_collection.h"
 
 #define ASSIGN_ANY_VALUE_TO_COMPILED_SCHEMA(keyword)                           \
   do {                                                                         \
@@ -50,6 +51,16 @@
                                                                                             \
       compiled_schema->keyword##_schema = child_schema;                                     \
     }                                                                                       \
+  } while(0);
+
+#define ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(keyword)                                             \
+  do {                                                                                                   \
+    VALUE keyword##_val = rb_hash_lookup2(ruby_schema, keyword##_str, Qundef);                           \
+                                                                                                         \
+    if(RB_TYPE_P(keyword##_val, T_ARRAY)) {                                                              \
+      VALUE child_path = new_path(path, keyword##_str);                                                  \
+      compile_schema_collection(&(compiled_schema->keyword##_val), keyword##_val, ref_hash, child_path); \
+    }                                                                                                    \
   } while(0);
 
 #define COMPACT_VALUE(keyword)                                                         \
@@ -126,6 +137,9 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_CHILD_SCHEMA(then);
   MARK_CHILD_SCHEMA(else);
 
+  MARK_VALUE(allOf);
+  MARK_VALUE(anyOf);
+  MARK_VALUE(oneOf);
   MARK_CHILD_SCHEMA(not);
 
   MARK_CHILD_SCHEMA(items);
@@ -210,6 +224,9 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_CHILD_SCHEMA(then);
   COMPACT_CHILD_SCHEMA(else);
 
+  COMPACT_VALUE(allOf);
+  COMPACT_VALUE(anyOf);
+  COMPACT_VALUE(oneOf);
   COMPACT_CHILD_SCHEMA(not);
 
   COMPACT_CHILD_SCHEMA(items);
@@ -261,6 +278,9 @@ static CompiledSchema *create_compiled_schema(VALUE path) {
   compiled_schema->then_schema = NULL;
   compiled_schema->else_schema = NULL;
 
+  compiled_schema->allOf_val = Qundef;
+  compiled_schema->anyOf_val = Qundef;
+  compiled_schema->oneOf_val = Qundef;
   compiled_schema->not_schema = NULL;
 
   compiled_schema->multipleOf_val = Qundef;
@@ -357,6 +377,9 @@ CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, schema_fl
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(then);
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(else);
 
+  ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(allOf);
+  ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(anyOf);
+  ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(oneOf);
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(not);
 
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(multipleOf, T_FIXNUM, T_BIGNUM, T_FLOAT);

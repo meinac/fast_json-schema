@@ -54,4 +54,13 @@ void validate(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context
 
   if(compiled_schema->not_schema != NULL)
     validate_not(schema, compiled_schema, data, context);
+
+  if(compiled_schema->allOf_val != Qundef)
+    validate_all_of(schema, compiled_schema, data, context);
+
+  if(compiled_schema->anyOf_val != Qundef)
+    validate_any_of(schema, compiled_schema, data, context);
+
+  if(compiled_schema->oneOf_val != Qundef)
+    validate_one_of(schema, compiled_schema, data, context);
 }

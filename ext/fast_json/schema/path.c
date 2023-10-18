@@ -27,3 +27,9 @@ VALUE to_path(VALUE *list, int depth) {
 
   return path;
 }
+
+VALUE append_long_to_path(VALUE root, long i) {
+  char *root_ptr = StringValueCStr(root);
+
+  return rb_sprintf("%s/%ld", root_ptr, i);
+}

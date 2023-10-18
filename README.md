@@ -30,9 +30,9 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `then` &check;
     - `else` &check;
 - **Keywords for Applying Subschemas With Boolean Logic**
-    - `allOf` &cross;
-    - `anyOf` &cross;
-    - `oneOf` &cross;
+    - `allOf` &check;
+    - `anyOf` &check;
+    - `oneOf` &check;
     - `not` &check;
 - **Validation keywords for any instance type**
     - `type` &check;

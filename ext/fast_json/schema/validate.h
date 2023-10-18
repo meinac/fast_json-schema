@@ -1,6 +1,9 @@
 #include <ruby.h>
 #include "compiled_schema.h"
 #include "if.h"
+#include "all_of.h"
+#include "any_of.h"
+#include "one_of.h"
 #include "not.h"
 #include "validate_array.h"
 #include "validate_bool.h"

@@ -19,4 +19,6 @@ void yield_error(CompiledSchema *compiled_schema, VALUE data, Context *context, 
 
 void Init_error(VALUE schema_class) {
   error_class = rb_const_get(schema_class, rb_intern("Error"));
+
+  rb_gc_register_address(&error_class);
 }

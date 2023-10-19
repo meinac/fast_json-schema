@@ -432,4 +432,6 @@ void Init_compiled_schema(VALUE schema_class) {
   compiled_schema_class = rb_define_class_under(schema_class, "CompiledSchema", rb_cObject);
 
   rb_define_alloc_func(compiled_schema_class, alloc_compiled_schema);
+
+  rb_gc_register_address(&compiled_schema_class);
 }

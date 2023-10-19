@@ -15,10 +15,10 @@ VALUE multipleOf_str, maximum_str, exclusiveMaximum_str, minimum_str, exclusiveM
 VALUE maxLength_str, minLength_str, pattern_str, format_str;
 
 // Array keywords
-VALUE items_str, contains_str, maxItems_str, minItems_str, uniqueItems_str, maxContains_str, minContains_str;
+VALUE items_str, additionalItems_str, unevaluatedItems_str, contains_str, maxItems_str, minItems_str, uniqueItems_str, maxContains_str, minContains_str;
 
 // Object keywords
-VALUE properties_str, maxProperties_str, minProperties_str, required_str, dependentRequired_str;
+VALUE properties_str, patternProperties_str, additionalProperties_str, unevaluatedProperties_str, maxProperties_str, minProperties_str, required_str, dependentRequired_str;
 
 void Init_keywords() {
   root_path_str = rb_str_new_literal("#");
@@ -52,6 +52,8 @@ void Init_keywords() {
   format_str = rb_str_new_literal("format");
 
   items_str = rb_str_new_literal("items");
+  additionalItems_str = rb_str_new_literal("additionalItems");
+  unevaluatedItems_str = rb_str_new_literal("unevaluatedItems");
   contains_str = rb_str_new_literal("contains");
   maxItems_str = rb_str_new_literal("maxItems");
   minItems_str = rb_str_new_literal("minItems");
@@ -60,6 +62,9 @@ void Init_keywords() {
   minContains_str = rb_str_new_literal("minContains");
 
   properties_str = rb_str_new_literal("properties");
+  patternProperties_str = rb_str_new_literal("patternProperties");
+  additionalProperties_str = rb_str_new_literal("additionalProperties");
+  unevaluatedProperties_str = rb_str_new_literal("unevaluatedProperties");
   maxProperties_str = rb_str_new_literal("maxProperties");
   minProperties_str = rb_str_new_literal("minProperties");
   required_str = rb_str_new_literal("required");

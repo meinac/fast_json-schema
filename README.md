@@ -50,6 +50,8 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `pattern` &check;
 - **Validation Keywords for Arrays**
     - `items` &check;
+    - `additionalItems` &cross;
+    - `unevaluatedItems` &cross;
     - `maxItems` &check;
     - `minItems` &check;
     - `uniqueItems` &check;
@@ -58,6 +60,10 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `minContains` &check;
 - **Validation Keywords for Objects**
     - `properties` &check;
+    - `patternProperties` &cross;
+    - `additionalProperties` &cross;
+    - `unevaluatedProperties` &cross;
+    - `propertyNames` &cross;
     - `maxProperties` &check;
     - `minProperties` &check;
     - `required` &check;

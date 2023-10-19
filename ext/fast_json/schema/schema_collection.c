@@ -2,7 +2,8 @@
 #include "compiled_schema.h"
 #include "path.h"
 
-extern CompiledSchema *compile(VALUE, VALUE, VALUE, schema_flag_t);
+extern CompiledSchema *create_compiled_schema(VALUE, schema_flag_t);
+extern void compile(CompiledSchema *, VALUE, VALUE);
 
 void compile_schema_collection(VALUE *schema_member, VALUE ruby_schema_array, VALUE ref_hash, VALUE path) {
   long i;
@@ -16,8 +17,10 @@ void compile_schema_collection(VALUE *schema_member, VALUE ruby_schema_array, VA
     VALUE ruby_schema = rb_ary_entry(ruby_schema_array, i);
     VALUE new_path = append_long_to_path(path, i);
 
-    CompiledSchema *compiled_schema = compile(ruby_schema, ref_hash, new_path, EXPOSE_TO_RUBY);
+    CompiledSchema *compiled_schema = create_compiled_schema(new_path, EXPOSE_TO_RUBY);
     VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
+
+    compile(compiled_schema, ruby_schema, ref_hash);
 
     rb_ary_push(compiled_schema_collection, compiled_schema_obj);
   }

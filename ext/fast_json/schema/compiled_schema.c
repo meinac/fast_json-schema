@@ -41,16 +41,17 @@
       compiled_schema->keyword##_val = keyword##_val;                            \
   } while(0);
 
-#define ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(keyword)                                           \
-  do {                                                                                      \
-    VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);                        \
-                                                                                            \
-    if(!NIL_P(keyword##_val)) {                                                             \
-      VALUE child_path = new_path(path, keyword##_str);                                     \
-      CompiledSchema *child_schema = compile(keyword##_val, ref_hash, child_path, NO_FLAG); \
-                                                                                            \
-      compiled_schema->keyword##_schema = child_schema;                                     \
-    }                                                                                       \
+#define ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(keyword)                                 \
+  do {                                                                            \
+    VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);              \
+                                                                                  \
+    if(!NIL_P(keyword##_val)) {                                                   \
+      VALUE child_path = new_path(compiled_schema->path, keyword##_str);          \
+      CompiledSchema *child_schema = create_compiled_schema(child_path, NO_FLAG); \
+      compiled_schema->keyword##_schema = child_schema;                           \
+                                                                                  \
+      compile(child_schema, keyword##_val, ref_hash);                             \
+    }                                                                             \
   } while(0);
 
 #define ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(keyword)                                             \
@@ -58,7 +59,7 @@
     VALUE keyword##_val = rb_hash_lookup2(ruby_schema, keyword##_str, Qundef);                           \
                                                                                                          \
     if(RB_TYPE_P(keyword##_val, T_ARRAY)) {                                                              \
-      VALUE child_path = new_path(path, keyword##_str);                                                  \
+      VALUE child_path = new_path(compiled_schema->path, keyword##_str);                                 \
       compile_schema_collection(&(compiled_schema->keyword##_val), keyword##_val, ref_hash, child_path); \
     }                                                                                                    \
   } while(0);
@@ -261,8 +262,10 @@ static VALUE alloc_compiled_schema(VALUE klass) {
   return object;
 }
 
-static CompiledSchema *create_compiled_schema(VALUE path) {
+CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
   CompiledSchema *compiled_schema = ALLOC(CompiledSchema);
+
+  compiled_schema->flags = flags;
 
   compiled_schema->path = path;
 
@@ -336,31 +339,19 @@ static validation_function type_validation_function(VALUE ruby_schema) {
   return no_op_validate;
 }
 
-CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, schema_flag_t flags) {
-  CompiledSchema *compiled_schema = create_compiled_schema(path);
-
-  compiled_schema->flags = flags;
-
-  /*
-  * TODO: Optimize this.
-  * It's better to return just `NULL` if the schema is not root
-  * and the given ruby schema is not Hash or Qfalse.
-  */
+void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_hash) {
   compiled_schema->validation_function = no_op_validate;
 
   if(ruby_schema == Qfalse)
     compiled_schema->validation_function = false_validate;
 
-  if(ruby_schema == Qtrue)
-    compiled_schema->validation_function = no_op_validate;
-
   if(!RB_TYPE_P(ruby_schema, T_HASH))
-    return compiled_schema;
+    return;
 
   if(RHASH_SIZE(ruby_schema) == 0) {
     compiled_schema->validation_function = no_op_validate;
 
-    return compiled_schema;
+    return;
   }
 
   compiled_schema->validation_function = validate;
@@ -405,27 +396,33 @@ CompiledSchema *compile(VALUE ruby_schema, VALUE ref_hash, VALUE path, schema_fl
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(required, T_ARRAY);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(dependentRequired, T_HASH);
 
-  compile_properties_val(compiled_schema, ruby_schema, ref_hash, path);
+  compile_properties_val(compiled_schema, ruby_schema, ref_hash);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 
   // Embed compiled schema into Ruby Hash
-  rb_hash_aset(ref_hash, path, PTR2NUM(compiled_schema));
+  rb_hash_aset(ref_hash, compiled_schema->path, PTR2NUM(compiled_schema));
 
   // Embed compiled schema into Ruby Hash again if it has an $id
   if(compiled_schema->id_val != Qundef)
     rb_hash_aset(ref_hash, compiled_schema->id_val, PTR2NUM(compiled_schema));
-
-  return compiled_schema;
 }
 
 void compile_schema(VALUE self) {
   VALUE ruby_schema = rb_ivar_get(self, rb_intern("@ruby_schema"));
   VALUE ref_hash = rb_hash_new();
 
+  /*
+  * Before running the compilation logic, we have to wrap the CompiledSchema struct into a
+  * Ruby object and keep it in the stack. Otherwise, we can't mark the intermediary objects,
+  * created and assigned to that struct to prevent them from being freed by the GC if it runs
+  * while compiling the schema.
+  */
   schema_flag_t flags = ROOT_SCHEMA | EXPOSE_TO_RUBY;
-  CompiledSchema *compiled_schema = compile(ruby_schema, ref_hash, root_path_str, flags);
-  VALUE compiled_schema_obj = TypedData_Wrap_Struct(compiled_schema_class, &compiled_schema_type, compiled_schema);
+  CompiledSchema *compiled_schema = create_compiled_schema(root_path_str, flags);
+  VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
+
+  compile(compiled_schema, ruby_schema, ref_hash);
 
   rb_ivar_set(self, rb_intern("compiled_schema"), compiled_schema_obj);
   rb_ivar_set(self, rb_intern("compiled"), Qtrue);

@@ -6,11 +6,15 @@
 
 #define MAX_CONTEXT_DEPTH 1000
 
+typedef struct validation_env_struct {
+  bool jump;
+  jmp_buf buf;
+} ValidationEnv;
+
 typedef struct context_struct {
   VALUE path[MAX_CONTEXT_DEPTH];
   int depth;
-  bool jump;
-  jmp_buf env;
+  ValidationEnv env;
 } Context;
 
 #endif
@@ -25,16 +29,29 @@ typedef struct context_struct {
 
 #define ADD_TO_CONTEXT(context, value) context->path[context->depth] = value;
 
-#define SET_JUMP(context, result)       \
-  do {                                  \
-    context->jump = true;               \
-    result = RUBY_SETJMP(context->env); \
+#define SET_JUMP(env, old_env, result)               \
+  do {                                               \
+    if(env.jump) {                                   \
+      memcpy(&old_env, &env, sizeof(ValidationEnv)); \
+    } else {                                         \
+      old_env.jump = false;                          \
+    }                                                \
+                                                     \
+    env.jump = true;                                 \
+    result = RUBY_SETJMP(env.buf);                   \
   } while(0);
 
-#define RESET_JUMP(context) context->jump = false
+#define RESET_JUMP(env, old_env)                     \
+  do {                                               \
+    if(old_env.jump) {                               \
+      memcpy(&env, &old_env, sizeof(ValidationEnv)); \
+    } else {                                         \
+      env.jump = false;                              \
+    }                                                \
+  } while(0);
 
-#define JUMP_IF_SET(context)          \
-  do {                                \
-    if(context->jump)                 \
-      RUBY_LONGJMP(context->env, 1);  \
+#define JUMP_IF_SET(env)        \
+  do {                          \
+    if(env.jump)                \
+      RUBY_LONGJMP(env.buf, 1); \
   } while(0);

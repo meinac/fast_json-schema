@@ -18,7 +18,7 @@ VALUE rb_validate_with_schema(VALUE self, VALUE compiled_schema_obj, VALUE data)
 
   context_s.path[0] = root_path_str;
   context_s.depth = 0;
-  context_s.jump = false;
+  context_s.env =  (ValidationEnv){ false };
 
   compiled_schema->validation_function(self, compiled_schema, data, &context_s);
 

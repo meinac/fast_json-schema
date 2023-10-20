@@ -9,8 +9,10 @@ RSpec.describe "FastJSON::Schema Array" do
       using RSpec::Parameterized::TableSyntax
 
       where(:data, :items, :valid?) do
-        [1, 2] | { "type" => "integer" } | true
-        [1, 2] | { "type" => "boolean" } | false
+        [1, 2]    | { "type" => "integer" }                           | true
+        [1, true] | [{ "type" => "integer" }]                         | true
+        [1, nil]  | [{ "type" => "integer" }, { "type" => "string" }] | false
+        [1, 2]    | { "type" => "boolean" }                           | false
       end
 
       with_them do

@@ -18,6 +18,28 @@ static void validate_items(VALUE schema, CompiledSchema *compiled_schema, VALUE 
   DECR_CONTEXT(context);
 }
 
+static void validate_with_multiple_items_schema(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
+  long i;
+  long data_length = RARRAY_LEN(data);
+  long items_val_length = RARRAY_LEN(compiled_schema->items_val);
+  long upper_bound = (items_val_length < data_length) ? items_val_length : data_length;
+
+  INCR_CONTEXT(context);
+
+  for(i = 0; i < upper_bound; i++) {
+    ADD_TO_CONTEXT(context, LONG2NUM(i));
+
+    CompiledSchema *relevant_schema;
+    VALUE relevant_schema_obj = rb_ary_entry(compiled_schema->items_val, i);
+
+    GetCompiledSchema(relevant_schema_obj, relevant_schema);
+
+    compiled_schema->validation_function(schema, relevant_schema, rb_ary_entry(data, i), context);
+  }
+
+  DECR_CONTEXT(context);
+}
+
 static void validate_contains(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   long i, valid_count = 0;
 
@@ -73,8 +95,11 @@ void validate_array(VALUE schema, CompiledSchema *compiled_schema, VALUE data, C
       yield_error(compiled_schema, data, context, "uniqueItems");
   }
 
-  if(compiled_schema->items_schema != NULL)
+  if(compiled_schema->items_schema != NULL) {
     validate_items(schema, compiled_schema, data, context);
+  } else if(compiled_schema->items_val != Qundef) {
+    validate_with_multiple_items_schema(schema, compiled_schema, data, context);
+  }
 
   if(compiled_schema->contains_schema != NULL)
     validate_contains(schema, compiled_schema, data, context);

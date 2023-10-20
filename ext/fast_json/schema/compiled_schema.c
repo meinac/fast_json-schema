@@ -45,7 +45,10 @@
   do {                                                                            \
     VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);              \
                                                                                   \
-    if(!NIL_P(keyword##_val)) {                                                   \
+    if(RB_TYPE_P(keyword##_val, T_HASH) ||                                        \
+       RB_TYPE_P(keyword##_val, T_FALSE) ||                                       \
+       RB_TYPE_P(keyword##_val, T_TRUE))                                          \
+    {                                                                             \
       VALUE child_path = new_path(compiled_schema->path, keyword##_str);          \
       CompiledSchema *child_schema = create_compiled_schema(child_path, NO_FLAG); \
       compiled_schema->keyword##_schema = child_schema;                           \
@@ -122,6 +125,7 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_VALUE(minLength);
   MARK_VALUE(pattern);
 
+  MARK_VALUE(items); // This will mark the `items_val` not the `items_schema`.
   MARK_VALUE(maxItems);
   MARK_VALUE(minItems);
   MARK_VALUE(uniqueItems);
@@ -209,6 +213,7 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_VALUE(minLength);
   COMPACT_VALUE(pattern);
 
+  COMPACT_VALUE(items); // This will compact the `items_val` not `items_schema`.
   COMPACT_VALUE(maxItems);
   COMPACT_VALUE(minItems);
   COMPACT_VALUE(uniqueItems);
@@ -297,6 +302,7 @@ CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
   compiled_schema->pattern_val = Qundef;
 
   compiled_schema->items_schema = NULL;
+  compiled_schema->items_val = Qundef;
   compiled_schema->contains_schema = NULL;
   compiled_schema->maxItems_val = Qundef;
   compiled_schema->minItems_val = Qundef;
@@ -384,6 +390,7 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_hash)
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(pattern, T_STRING);
 
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(items);
+  ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(items);
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(contains);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxItems, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minItems, T_FIXNUM, T_BIGNUM);

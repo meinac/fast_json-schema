@@ -57,7 +57,14 @@ typedef struct compiled_schema_struct {
   VALUE minLength_val;
   VALUE pattern_val;
 
+  /*
+  * `items` can be either a JSON schema or an array of valid JSON schemas.
+  *
+  *   - `items_schema` is set if it's a JSON schema
+  *   - `items_val` is set if it's an array of JSON schemas
+  */
   CompiledSchema *items_schema;
+  VALUE items_val;
   CompiledSchema *contains_schema;
   VALUE maxItems_val;
   VALUE minItems_val;

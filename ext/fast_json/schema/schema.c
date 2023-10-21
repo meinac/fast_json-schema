@@ -4,6 +4,25 @@
 #include "types/context.h"
 #include "error.h"
 
+extern bool is_valid(VALUE, CompiledSchema *, VALUE, Context *);
+
+static CompiledSchema *root_schema(VALUE self) {
+  CompiledSchema *compiled_schema;
+  VALUE compiled_schema_obj = rb_ivar_get(self, rb_intern("compiled_schema"));
+
+  return GetCompiledSchema(compiled_schema_obj, compiled_schema);
+}
+
+static Context initial_context() {
+  Context context;
+
+  context.path[0] = root_path_str;
+  context.depth = 0;
+  context.env = (ValidationEnv){ false };
+
+  return context;
+}
+
 VALUE rb_validate_with_schema(VALUE self, VALUE compiled_schema_obj, VALUE data) {
   if (!rb_block_given_p()) {
     VALUE args[2] = { compiled_schema_obj, data };
@@ -31,6 +50,15 @@ VALUE rb_validate(VALUE self, VALUE data) {
   return rb_funcall(self, rb_intern("validate_with_schema"), 2, compiled_schema_obj, data);
 }
 
+VALUE rb_valid(VALUE self, VALUE data) {
+  CompiledSchema *schema = root_schema(self);
+  Context context = initial_context();
+
+  bool valid = is_valid(self, schema, data, &context);
+
+  return valid ? Qtrue : Qfalse;
+}
+
 VALUE rb_compile(VALUE self) {
   VALUE is_compiled = rb_ivar_get(self, rb_intern("compiled"));
 
@@ -49,5 +77,6 @@ void Init_schema() {
 
   rb_define_method(schema_class, "compile", rb_compile, 0);
   rb_define_method(schema_class, "validate", rb_validate, 1);
+  rb_define_method(schema_class, "valid?", rb_valid, 1);
   rb_define_private_method(schema_class, "validate_with_schema", rb_validate_with_schema, 2);
 }

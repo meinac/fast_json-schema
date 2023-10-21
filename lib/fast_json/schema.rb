@@ -16,12 +16,8 @@ class FastJSON
       @ruby_schema = ruby_schema
     end
 
-    def valid?(data)
-      validate(data).none?
-    end
-
     def invalid?(data)
-      validate(data).any?
+      !valid?(data)
     end
   end
 end

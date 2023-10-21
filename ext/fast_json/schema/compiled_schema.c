@@ -316,7 +316,7 @@ CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
 static validation_function type_validation_function(VALUE ruby_schema) {
   VALUE type_val = rb_hash_aref(ruby_schema, type_str);
 
-  if(!RB_TYPE_P(type_val, T_STRING)) return no_op_validate;
+  if(!RB_TYPE_P(type_val, T_STRING)) return validate_by_data_type;
 
   char *type_str = StringValuePtr(type_val);
 

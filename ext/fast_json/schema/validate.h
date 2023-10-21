@@ -15,4 +15,5 @@
 
 void no_op_validate(VALUE, CompiledSchema *, VALUE, Context *);
 void false_validate(VALUE, CompiledSchema *, VALUE, Context *);
+void validate_by_data_type(VALUE, CompiledSchema *, VALUE, Context *);
 void validate(VALUE, CompiledSchema *, VALUE, Context *);

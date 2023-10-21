@@ -27,6 +27,20 @@ void false_validate(VALUE schema, CompiledSchema *compiled_schema, VALUE data, C
   yield_error(compiled_schema, data, context, "false_schema");
 }
 
+void validate_by_data_type(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
+  if(RB_INTEGER_TYPE_P(data)) {
+    validate_integer(schema, compiled_schema, data, context);
+  } else if(RB_TYPE_P(data, T_FLOAT)) {
+    validate_number(schema, compiled_schema, data, context);
+  } else if(RB_TYPE_P(data, T_STRING)) {
+    validate_string(schema, compiled_schema, data, context);
+  } else if(RB_TYPE_P(data, T_HASH)) {
+    validate_object(schema, compiled_schema, data, context);
+  } else if(RB_TYPE_P(data, T_ARRAY)) {
+    validate_array(schema, compiled_schema, data, context);
+  }
+}
+
 static void validate_const(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   VALUE equal = rb_funcall(compiled_schema->const_val, rb_intern("=="), 1, data);
 

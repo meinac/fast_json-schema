@@ -50,7 +50,7 @@ This gem is under development at the moment. Here is the list of keywords/annota
     - `pattern` &check;
 - **Validation Keywords for Arrays**
     - `items` &check;
-    - `additionalItems` &cross;
+    - `additionalItems` &check;
     - `unevaluatedItems` &cross;
     - `maxItems` &check;
     - `minItems` &check;

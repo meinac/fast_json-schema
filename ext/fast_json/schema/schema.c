@@ -23,31 +23,19 @@ static Context initial_context() {
   return context;
 }
 
-VALUE rb_validate_with_schema(VALUE self, VALUE compiled_schema_obj, VALUE data) {
+VALUE rb_validate(VALUE self, VALUE data) {
   if (!rb_block_given_p()) {
-    VALUE args[2] = { compiled_schema_obj, data };
+    VALUE args[1] = { data };
 
-    RETURN_SIZED_ENUMERATOR(self, 2, args, 0);
+    RETURN_SIZED_ENUMERATOR(self, 1, args, 0);
   }
 
-  CompiledSchema *compiled_schema;
-  GetCompiledSchema(compiled_schema_obj, compiled_schema);
+  CompiledSchema *schema = root_schema(self);
+  Context context = initial_context();
 
-  Context context_s;
-
-  context_s.path[0] = root_path_str;
-  context_s.depth = 0;
-  context_s.env =  (ValidationEnv){ false };
-
-  compiled_schema->validation_function(self, compiled_schema, data, &context_s);
+  schema->validation_function(self, schema, data, &context);
 
   return Qnil;
-}
-
-VALUE rb_validate(VALUE self, VALUE data) {
-  VALUE compiled_schema_obj = rb_ivar_get(self, rb_intern("compiled_schema"));
-
-  return rb_funcall(self, rb_intern("validate_with_schema"), 2, compiled_schema_obj, data);
 }
 
 VALUE rb_valid(VALUE self, VALUE data) {
@@ -78,5 +66,4 @@ void Init_schema() {
   rb_define_method(schema_class, "compile", rb_compile, 0);
   rb_define_method(schema_class, "validate", rb_validate, 1);
   rb_define_method(schema_class, "valid?", rb_valid, 1);
-  rb_define_private_method(schema_class, "validate_with_schema", rb_validate_with_schema, 2);
 }

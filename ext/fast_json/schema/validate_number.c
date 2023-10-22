@@ -7,7 +7,7 @@ void validate_number(VALUE schema, CompiledSchema *compiled_schema, VALUE data, 
 
   double data_c;
 
-  if(RB_INTEGER_TYPE_P(data)) {
+  if(!RB_INTEGER_TYPE_P(data)) {
     data_c = NUM2DBL(data);
   } else {
     data_c = NUM2LONG(data);

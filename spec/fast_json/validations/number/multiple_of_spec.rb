@@ -13,6 +13,7 @@ RSpec.describe "FastJSON::Schema Number" do
         4.0 | 0.2 | true
         4   | 1   | true
         4   | 0.2 | true
+        4.8 | 0.6 | true
         4.0 | 3   | false
         4.0 | 0.3 | false
         4   | 3   | false

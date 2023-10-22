@@ -23,8 +23,8 @@ This gem is under development at the moment. Here is the list of keywords/annota
 - **Annotations**
     - `$id` &check;
     - `$ref` &cross;
-    - `$recursiveAnchor` &cross;
-    - `$recursiveRef` &cross;
+    - `$recursiveAnchor` &cross; (Draft 8)
+    - `$recursiveRef` &cross; (Draft 8)
 - **Keywords for Applying Subschemas Conditionally**
     - `if` &check;
     - `then` &check;
@@ -51,18 +51,18 @@ This gem is under development at the moment. Here is the list of keywords/annota
 - **Validation Keywords for Arrays**
     - `items` &check;
     - `additionalItems` &check;
-    - `unevaluatedItems` &cross;
+    - `unevaluatedItems` &cross; (Draft 8)
     - `maxItems` &check;
     - `minItems` &check;
     - `uniqueItems` &check;
     - `contains` &check;
-    - `maxContains` &check;
-    - `minContains` &check;
+    - `maxContains` &check; (Draft 8)
+    - `minContains` &check; (Draft 8)
 - **Validation Keywords for Objects**
     - `properties` &check;
     - `patternProperties` &cross;
     - `additionalProperties` &cross;
-    - `unevaluatedProperties` &cross;
+    - `unevaluatedProperties` &cross; (Draft 8)
     - `propertyNames` &cross;
     - `maxProperties` &check;
     - `minProperties` &check;
@@ -75,7 +75,7 @@ This gem is under development at the moment. Here is the list of keywords/annota
         - `date-time` &cross;
         - `date` &cross;
         - `time` &cross;
-        - `duration` &cross;
+        - `duration` &cross; (Draft 8)
     - Email Addresses
         - `email` &cross;
         - `idn-email` &cross;
@@ -90,7 +90,7 @@ This gem is under development at the moment. Here is the list of keywords/annota
         - `uri-reference` &cross;
         - `iri` &cross;
         - `iri-reference` &cross;
-        - `uuid` &cross;
+        - `uuid` &cross; (Draft 8)
     - `uri-template` &cross;
     - JSON Pointers
         - `json-pointer` &cross;

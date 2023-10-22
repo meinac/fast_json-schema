@@ -10,6 +10,7 @@ RSpec.describe "FastJSON::Schema Object" do
 
       where(:data, :properties, :valid?) do
         { "foo" => 1 }  | {}                                   | true
+        { "foo" => 1 }  | { "bar" => false }                   | true
         { "foo" => 1 }  | { "foo" => true }                    | true
         { "foo" => 1 }  | { "foo" => {} }                      | true
         { "foo" => 1 }  | { "foo" => false }                   | false

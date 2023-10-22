@@ -3,7 +3,7 @@
 
 struct memo_S {
   VALUE schema;
-  CompiledSchema *compiled_schema;
+  VALUE properties_val;
   Context *context;
 };
 
@@ -11,8 +11,7 @@ static int validate_object_property(VALUE key, VALUE value, VALUE data) {
   if(!RB_TYPE_P(key, T_STRING)) return ST_CONTINUE;
 
   struct memo_S *memo = (struct memo_S*)data;
-  VALUE properties_val = memo->compiled_schema->properties_val;
-  VALUE child_compiled_schema_obj = rb_hash_aref(properties_val, key);
+  VALUE child_compiled_schema_obj = rb_hash_aref(memo->properties_val, key);
 
   if(NIL_P(child_compiled_schema_obj)) return ST_CONTINUE;
 
@@ -27,7 +26,7 @@ static int validate_object_property(VALUE key, VALUE value, VALUE data) {
 }
 
 static void validate_properties(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
-  struct memo_S memo = { schema, compiled_schema, context };
+  struct memo_S memo = { schema, compiled_schema->properties_val, context };
 
   INCR_CONTEXT(context);
 

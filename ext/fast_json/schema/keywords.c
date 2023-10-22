@@ -134,6 +134,8 @@ void Init_keywords() {
   rb_gc_register_address(&format_str);
 
   rb_gc_register_address(&items_str);
+  rb_gc_register_address(&additionalItems_str);
+  rb_gc_register_address(&unevaluatedItems_str);
   rb_gc_register_address(&contains_str);
   rb_gc_register_address(&maxItems_str);
   rb_gc_register_address(&minItems_str);
@@ -142,6 +144,9 @@ void Init_keywords() {
   rb_gc_register_address(&minContains_str);
 
   rb_gc_register_address(&properties_str);
+  rb_gc_register_address(&patternProperties_str);
+  rb_gc_register_address(&additionalProperties_str);
+  rb_gc_register_address(&unevaluatedProperties_str);
   rb_gc_register_address(&maxProperties_str);
   rb_gc_register_address(&minProperties_str);
   rb_gc_register_address(&required_str);

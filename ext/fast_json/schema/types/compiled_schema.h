@@ -65,6 +65,7 @@ typedef struct compiled_schema_struct {
   */
   CompiledSchema *items_schema;
   VALUE items_val;
+  CompiledSchema *additionalItems_schema;
   CompiledSchema *contains_schema;
   VALUE maxItems_val;
   VALUE minItems_val;

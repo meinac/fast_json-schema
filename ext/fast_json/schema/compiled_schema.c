@@ -150,6 +150,8 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_CHILD_SCHEMA(items);
   MARK_CHILD_SCHEMA(contains);
   MARK_CHILD_SCHEMA(additionalItems);
+
+  MARK_CHILD_SCHEMA(propertyNames);
 }
 
 static void rb_mark_compiled_schema(void *ptr) {
@@ -170,6 +172,8 @@ static void free_compiled_schema(CompiledSchema *compiled_schema) {
   FREE_CHILD_SCHEMA(items);
   FREE_CHILD_SCHEMA(contains);
   FREE_CHILD_SCHEMA(additionalItems);
+
+  FREE_CHILD_SCHEMA(propertyNames);
 
   xfree(compiled_schema);
 }
@@ -240,6 +244,8 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_CHILD_SCHEMA(items);
   COMPACT_CHILD_SCHEMA(contains);
   COMPACT_CHILD_SCHEMA(additionalItems);
+
+  COMPACT_CHILD_SCHEMA(propertyNames);
 }
 
 static void rb_compact_compiled_schema(void *ptr) {
@@ -315,6 +321,7 @@ CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
   compiled_schema->minContains_val = Qundef;
 
   compiled_schema->properties_val = Qundef;
+  compiled_schema->propertyNames_schema = NULL;
   compiled_schema->maxProperties_val = Qundef;
   compiled_schema->minProperties_val = Qundef;
   compiled_schema->required_val = Qundef;
@@ -403,6 +410,7 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_hash)
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxContains, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minContains, T_FIXNUM, T_BIGNUM);
 
+  ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(propertyNames);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxProperties, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minProperties, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(required, T_ARRAY);

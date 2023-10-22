@@ -63,7 +63,7 @@ This gem is under development at the moment and I am planning to support only th
     - `patternProperties` &cross;
     - `additionalProperties` &cross;
     - `unevaluatedProperties` &cross; (Draft 8)
-    - `propertyNames` &cross;
+    - `propertyNames` &check;
     - `maxProperties` &check;
     - `minProperties` &check;
     - `required` &check;

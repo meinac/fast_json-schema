@@ -48,6 +48,7 @@ VALUE properties_str,
       patternProperties_str,
       additionalProperties_str,
       unevaluatedProperties_str,
+      propertyNames_str,
       maxProperties_str,
       minProperties_str,
       required_str,
@@ -98,6 +99,7 @@ void Init_keywords() {
   patternProperties_str = rb_str_new_literal("patternProperties");
   additionalProperties_str = rb_str_new_literal("additionalProperties");
   unevaluatedProperties_str = rb_str_new_literal("unevaluatedProperties");
+  propertyNames_str = rb_str_new_literal("propertyNames");
   maxProperties_str = rb_str_new_literal("maxProperties");
   minProperties_str = rb_str_new_literal("minProperties");
   required_str = rb_str_new_literal("required");
@@ -147,6 +149,7 @@ void Init_keywords() {
   rb_gc_register_address(&patternProperties_str);
   rb_gc_register_address(&additionalProperties_str);
   rb_gc_register_address(&unevaluatedProperties_str);
+  rb_gc_register_address(&propertyNames_str);
   rb_gc_register_address(&maxProperties_str);
   rb_gc_register_address(&minProperties_str);
   rb_gc_register_address(&required_str);

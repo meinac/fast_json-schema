@@ -1,6 +1,5 @@
 #include "validate_array.h"
 #include "error.h"
-#include "value_pointer_caster.h"
 
 extern bool is_valid(VALUE, CompiledSchema *, VALUE, Context *);
 

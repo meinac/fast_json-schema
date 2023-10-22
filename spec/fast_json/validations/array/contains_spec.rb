@@ -11,6 +11,9 @@ RSpec.describe "FastJSON::Schema Array" do
       where(:data, :contains, :valid?) do
         [1, 2]    | { "type" => "integer" } | true
         [1, true] | { "type" => "boolean" } | true
+        [1, true] | true                    | true
+        [1, true] | {}                      | true
+        [1, true] | false                   | false
         [1, 1]    | { "type" => "boolean" } | false
       end
 

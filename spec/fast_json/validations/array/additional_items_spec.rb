@@ -13,6 +13,9 @@ RSpec.describe "FastJSON::Schema Array" do
         [1, 2]    | { "type" => "integer" }   | { "type" => "boolean" } | true
         [1]       | [{ "type" => "integer" }] | { "type" => "boolean" } | true
         [1, true] | [{ "type" => "integer" }] | { "type" => "boolean" } | true
+        [1, true] | [{ "type" => "integer" }] | true                    | true
+        [1, true] | [{ "type" => "integer" }] | {}                      | true
+        [1, 2]    | [{ "type" => "integer" }] | false                   | false
         [1, 2]    | [{ "type" => "integer" }] | { "type" => "boolean" } | false
       end
 

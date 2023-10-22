@@ -6,13 +6,14 @@ extern bool is_valid(VALUE, CompiledSchema *, VALUE, Context *);
 
 static void validate_items(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   long i;
+  CompiledSchema *items_schema = compiled_schema->items_schema;
 
   INCR_CONTEXT(context);
 
   for(i = 0; i < RARRAY_LEN(data); i++) {
     ADD_TO_CONTEXT(context, LONG2NUM(i));
 
-    compiled_schema->validation_function(schema, compiled_schema->items_schema, rb_ary_entry(data, i), context);
+    items_schema->validation_function(schema, items_schema, rb_ary_entry(data, i), context);
   }
 
   DECR_CONTEXT(context);
@@ -38,7 +39,7 @@ static bool validate_with_multiple_items_schema(VALUE schema, CompiledSchema *co
 
     GetCompiledSchema(relevant_schema_obj, relevant_schema);
 
-    compiled_schema->validation_function(schema, relevant_schema, rb_ary_entry(data, i), context);
+    relevant_schema->validation_function(schema, relevant_schema, rb_ary_entry(data, i), context);
   }
 
   DECR_CONTEXT(context);
@@ -48,13 +49,14 @@ static bool validate_with_multiple_items_schema(VALUE schema, CompiledSchema *co
 
 static void validate_additional_items(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   long i = RARRAY_LEN(compiled_schema->items_val);
+  CompiledSchema *additionalItems_schema = compiled_schema->additionalItems_schema;
 
   INCR_CONTEXT(context);
 
   for(; i < RARRAY_LEN(data); i++) {
     ADD_TO_CONTEXT(context, LONG2NUM(i));
 
-    compiled_schema->validation_function(schema, compiled_schema->additionalItems_schema, rb_ary_entry(data, i), context);
+    additionalItems_schema->validation_function(schema, additionalItems_schema, rb_ary_entry(data, i), context);
   }
 
   DECR_CONTEXT(context);

@@ -29,17 +29,17 @@ static int compile_property(VALUE key, VALUE value, VALUE data) {
   return ST_CONTINUE;
 }
 
-void compile_properties_val(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_hash) {
-  VALUE properties = rb_hash_aref(ruby_schema, properties_str);
+void compile_properties_val(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_hash, VALUE *schema_member, VALUE keyword) {
+  VALUE properties = rb_hash_aref(ruby_schema, keyword);
 
   if(!RB_TYPE_P(properties, T_HASH)) return;
 
   VALUE properties_hash = rb_hash_new();
-  VALUE properties_path = new_path(root_schema->path, rb_str_new2("properties"));
+  VALUE properties_path = new_path(root_schema->path, keyword);
 
   struct memo_S memo = { properties_hash, ref_hash, properties_path };
 
   rb_hash_foreach(properties, compile_property, (VALUE)&memo);
 
-  root_schema->properties_val = properties_hash;
+  *schema_member = properties_hash;
 }

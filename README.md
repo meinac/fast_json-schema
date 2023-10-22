@@ -18,7 +18,7 @@ TODO: Write usage instructions here
 
 ## Roadmap
 
-This gem is under development at the moment. Here is the list of keywords/annotations and the progress;
+This gem is under development at the moment and I am planning to support only the Draft 7 in the first version. That being said, some of the validation keywords of Draft 8 are implemented. Here is the list of keywords/annotations and the progress;
 
 - **Annotations**
     - `$id` &check;

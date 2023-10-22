@@ -74,6 +74,7 @@ typedef struct compiled_schema_struct {
   VALUE minContains_val;
 
   VALUE properties_val;
+  VALUE patternProperties_val;
   CompiledSchema *propertyNames_schema;
   CompiledSchema *additionalProperties_schema;
   VALUE maxProperties_val;

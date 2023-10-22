@@ -133,6 +133,7 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_VALUE(minContains);
 
   MARK_VALUE(properties);
+  MARK_VALUE(patternProperties);
   MARK_VALUE(maxProperties);
   MARK_VALUE(minProperties);
   MARK_VALUE(required);
@@ -229,6 +230,7 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_VALUE(minContains);
 
   COMPACT_VALUE(properties);
+  COMPACT_VALUE(patternProperties);
   COMPACT_VALUE(maxProperties);
   COMPACT_VALUE(minProperties);
   COMPACT_VALUE(required);
@@ -324,6 +326,7 @@ CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
   compiled_schema->minContains_val = Qundef;
 
   compiled_schema->properties_val = Qundef;
+  compiled_schema->patternProperties_val = Qundef;
   compiled_schema->propertyNames_schema = NULL;
   compiled_schema->additionalProperties_schema = NULL;
   compiled_schema->maxProperties_val = Qundef;

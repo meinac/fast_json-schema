@@ -424,8 +424,8 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_hash)
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(required, T_ARRAY);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(dependentRequired, T_HASH);
 
-  compile_properties_val(compiled_schema, ruby_schema, ref_hash, &compiled_schema->properties_val, properties_str);
-  compile_properties_val(compiled_schema, ruby_schema, ref_hash, &compiled_schema->patternProperties_val, patternProperties_str);
+  compile_properties_val(compiled_schema, ruby_schema, ref_hash);
+  compile_pattern_properties_val(compiled_schema, ruby_schema, ref_hash);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 

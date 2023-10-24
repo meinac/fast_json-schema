@@ -60,7 +60,7 @@ This gem is under development at the moment and I am planning to support only th
     - `minContains` &check; (Draft 8)
 - **Validation Keywords for Objects**
     - `properties` &check;
-    - `patternProperties` &cross;
+    - `patternProperties` &check;
     - `additionalProperties` &cross;
     - `unevaluatedProperties` &cross; (Draft 8)
     - `propertyNames` &check;

@@ -29,13 +29,15 @@ static int validate_property_by_pattern(VALUE regexp, VALUE compiled_schema_obj,
   return ST_STOP;
 }
 
-static void validate_by_pattern_properties_keyword(VALUE schema, VALUE pattern_properties_val, VALUE key, VALUE value, Context *context) {
-  struct pattern_properties_memo_S memo = { schema, context, key, value };
+static void validate_by_pattern_properties_keyword(struct properties_memo_S *memo, VALUE key, VALUE value) {
+  VALUE patternProperties_val = memo->compiled_schema->patternProperties_val;
+  struct pattern_properties_memo_S pattern_memo = { memo->schema, memo->context, key, value };
 
-  rb_hash_foreach(pattern_properties_val, validate_property_by_pattern, (VALUE)&memo);
+  rb_hash_foreach(patternProperties_val, validate_property_by_pattern, (VALUE)&pattern_memo);
 }
 
-static void validate_by_properties_keyword(VALUE schema, VALUE properties_val, VALUE key, VALUE value, Context *context) {
+static void validate_by_properties_keyword(struct properties_memo_S *memo, VALUE key, VALUE value) {
+  VALUE properties_val = memo->compiled_schema->properties_val;
   VALUE compiled_schema_obj = rb_hash_aref(properties_val, key);
 
   if(NIL_P(compiled_schema_obj)) return;
@@ -43,7 +45,7 @@ static void validate_by_properties_keyword(VALUE schema, VALUE properties_val, V
   CompiledSchema *compiled_schema;
   GetCompiledSchema(compiled_schema_obj, compiled_schema);
 
-  compiled_schema->validation_function(schema, compiled_schema, value, context);
+  compiled_schema->validation_function(memo->schema, compiled_schema, value, memo->context);
 }
 
 static int validate_object_property(VALUE key, VALUE value, VALUE data) {
@@ -61,10 +63,10 @@ static int validate_object_property(VALUE key, VALUE value, VALUE data) {
     propertyNames_schema->validation_function(memo->schema, propertyNames_schema, key, memo->context);
 
   if(properties_val != Qundef)
-    validate_by_properties_keyword(memo->schema, properties_val, key, value, memo->context);
+    validate_by_properties_keyword(memo, key, value);
 
   if(patternProperties_val != Qundef)
-    validate_by_pattern_properties_keyword(memo->schema, patternProperties_val, key, value, memo->context);
+    validate_by_pattern_properties_keyword(memo, key, value);
 
   return ST_CONTINUE;
 }

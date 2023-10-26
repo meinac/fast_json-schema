@@ -52,7 +52,8 @@ VALUE properties_str,
       maxProperties_str,
       minProperties_str,
       required_str,
-      dependentRequired_str;
+      dependentRequired_str,
+      dependencies_str;
 
 void Init_keywords() {
   root_path_str = rb_str_new_literal("#");
@@ -104,6 +105,7 @@ void Init_keywords() {
   minProperties_str = rb_str_new_literal("minProperties");
   required_str = rb_str_new_literal("required");
   dependentRequired_str = rb_str_new_literal("dependentRequired");
+  dependentRequired_str = rb_str_new_literal("dependencies");
 
   rb_gc_register_address(&root_path_str);
 
@@ -154,4 +156,5 @@ void Init_keywords() {
   rb_gc_register_address(&minProperties_str);
   rb_gc_register_address(&required_str);
   rb_gc_register_address(&dependentRequired_str);
+  rb_gc_register_address(&dependencies_str);
 }

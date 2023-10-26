@@ -48,6 +48,7 @@ extern VALUE properties_str,
              maxProperties_str,
              minProperties_str,
              required_str,
-             dependentRequired_str;
+             dependentRequired_str,
+             dependencies_str;
 
 void Init_keywords();

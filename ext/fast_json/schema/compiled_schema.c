@@ -137,7 +137,7 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_VALUE(maxProperties);
   MARK_VALUE(minProperties);
   MARK_VALUE(required);
-  MARK_VALUE(dependentRequired);
+  MARK_VALUE(dependencies);
 
   MARK_CHILD_SCHEMA(if);
   MARK_CHILD_SCHEMA(then);
@@ -234,7 +234,7 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_VALUE(maxProperties);
   COMPACT_VALUE(minProperties);
   COMPACT_VALUE(required);
-  COMPACT_VALUE(dependentRequired);
+  COMPACT_VALUE(dependencies);
 
   COMPACT_CHILD_SCHEMA(if);
   COMPACT_CHILD_SCHEMA(then);
@@ -332,7 +332,7 @@ CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
   compiled_schema->maxProperties_val = Qundef;
   compiled_schema->minProperties_val = Qundef;
   compiled_schema->required_val = Qundef;
-  compiled_schema->dependentRequired_val = Qundef;
+  compiled_schema->dependencies_val = Qundef;
 
   return compiled_schema;
 }
@@ -422,7 +422,6 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_hash)
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxProperties, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minProperties, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(required, T_ARRAY);
-  ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(dependentRequired, T_HASH);
 
   compile_properties_val(compiled_schema, ruby_schema, ref_hash);
   compile_pattern_properties_val(compiled_schema, ruby_schema, ref_hash);

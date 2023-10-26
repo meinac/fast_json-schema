@@ -80,7 +80,7 @@ typedef struct compiled_schema_struct {
   VALUE maxProperties_val;
   VALUE minProperties_val;
   VALUE required_val;
-  VALUE dependentRequired_val;
+  VALUE dependencies_val;
 } CompiledSchema;
 
 #endif

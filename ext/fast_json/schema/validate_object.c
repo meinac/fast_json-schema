@@ -5,6 +5,7 @@ struct properties_memo_S {
   VALUE schema;
   CompiledSchema *compiled_schema;
   Context *context;
+  bool validated;
 };
 
 struct pattern_properties_memo_S {
@@ -12,6 +13,7 @@ struct pattern_properties_memo_S {
   Context *context;
   VALUE key;
   VALUE value;
+  bool validated;
 };
 
 static int validate_property_by_pattern(VALUE regexp, VALUE compiled_schema_obj, VALUE data) {
@@ -26,14 +28,18 @@ static int validate_property_by_pattern(VALUE regexp, VALUE compiled_schema_obj,
 
   compiled_schema->validation_function(memo->schema, compiled_schema, memo->value, memo->context);
 
+  memo->validated = true;
+
   return ST_STOP;
 }
 
 static void validate_by_pattern_properties_keyword(struct properties_memo_S *memo, VALUE key, VALUE value) {
   VALUE patternProperties_val = memo->compiled_schema->patternProperties_val;
-  struct pattern_properties_memo_S pattern_memo = { memo->schema, memo->context, key, value };
+  struct pattern_properties_memo_S pattern_memo = { memo->schema, memo->context, key, value, false };
 
   rb_hash_foreach(patternProperties_val, validate_property_by_pattern, (VALUE)&pattern_memo);
+
+  memo->validated |= pattern_memo.validated;
 }
 
 static void validate_by_properties_keyword(struct properties_memo_S *memo, VALUE key, VALUE value) {
@@ -46,6 +52,8 @@ static void validate_by_properties_keyword(struct properties_memo_S *memo, VALUE
   GetCompiledSchema(compiled_schema_obj, compiled_schema);
 
   compiled_schema->validation_function(memo->schema, compiled_schema, value, memo->context);
+
+  memo->validated = true;
 }
 
 static int validate_object_property(VALUE key, VALUE value, VALUE data) {
@@ -56,8 +64,11 @@ static int validate_object_property(VALUE key, VALUE value, VALUE data) {
   VALUE properties_val = memo->compiled_schema->properties_val;
   VALUE patternProperties_val = memo->compiled_schema->patternProperties_val;
   CompiledSchema *propertyNames_schema = memo->compiled_schema->propertyNames_schema;
+  CompiledSchema *additionalProperties_schema = memo->compiled_schema->additionalProperties_schema;
 
   ADD_TO_CONTEXT(memo->context, key);
+
+  memo->validated = false;
 
   if(propertyNames_schema != NULL)
     propertyNames_schema->validation_function(memo->schema, propertyNames_schema, key, memo->context);
@@ -67,6 +78,9 @@ static int validate_object_property(VALUE key, VALUE value, VALUE data) {
 
   if(patternProperties_val != Qundef)
     validate_by_pattern_properties_keyword(memo, key, value);
+
+  if(additionalProperties_schema != NULL && !memo->validated)
+    additionalProperties_schema->validation_function(memo->schema, additionalProperties_schema, value, memo->context);
 
   return ST_CONTINUE;
 }

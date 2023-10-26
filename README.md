@@ -61,7 +61,7 @@ This gem is under development at the moment and I am planning to support only th
 - **Validation Keywords for Objects**
     - `properties` &check;
     - `patternProperties` &check;
-    - `additionalProperties` &cross;
+    - `additionalProperties` &check;
     - `unevaluatedProperties` &cross; (Draft 8)
     - `propertyNames` &check;
     - `maxProperties` &check;

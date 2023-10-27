@@ -3,3 +3,4 @@
 
 void compile_properties_val(CompiledSchema *, VALUE, VALUE);
 void compile_pattern_properties_val(CompiledSchema *, VALUE, VALUE);
+void compile_dependencies_val(CompiledSchema *, VALUE, VALUE);

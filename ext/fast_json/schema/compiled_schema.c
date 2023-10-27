@@ -425,6 +425,7 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_hash)
 
   compile_properties_val(compiled_schema, ruby_schema, ref_hash);
   compile_pattern_properties_val(compiled_schema, ruby_schema, ref_hash);
+  compile_dependencies_val(compiled_schema, ruby_schema, ref_hash);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 

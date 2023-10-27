@@ -16,6 +16,12 @@ struct pattern_properties_memo_S {
   bool validated;
 };
 
+struct dependencies_memo_S {
+  VALUE schema;
+  VALUE data;
+  Context *context;
+};
+
 static int validate_property_by_pattern(VALUE regexp, VALUE compiled_schema_obj, VALUE data) {
   struct pattern_properties_memo_S *memo = (struct pattern_properties_memo_S *)data;
 
@@ -107,6 +113,27 @@ static void validate_required(VALUE schema, CompiledSchema *compiled_schema, VAL
   }
 }
 
+static int validate_dependency(VALUE key, VALUE value, VALUE data) {
+  struct dependencies_memo_S *memo = (struct dependencies_memo_S *)data;
+
+  VALUE hash_value = rb_hash_lookup2(memo->data, key, Qundef);
+
+  if(hash_value != Qundef) {
+    CompiledSchema *dependency_schema;
+    GetCompiledSchema(value, dependency_schema);
+
+    dependency_schema->validation_function(memo->schema, dependency_schema, memo->data, memo->context);
+  }
+
+  return ST_CONTINUE;
+}
+
+static void validate_dependencies(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
+  struct dependencies_memo_S memo = { schema, data, context };
+
+  rb_hash_foreach(compiled_schema->dependencies_val, validate_dependency, (VALUE)&memo);
+}
+
 void validate_object(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   if(!RB_TYPE_P(data, T_HASH))
     return yield_error(compiled_schema, data, context, "type_object");
@@ -123,6 +150,10 @@ void validate_object(VALUE schema, CompiledSchema *compiled_schema, VALUE data, 
 
   if(compiled_schema->required_val != Qundef)
     validate_required(schema, compiled_schema, data, context);
+
+  if(compiled_schema->dependencies_val != Qundef)
+    validate_dependencies(schema, compiled_schema, data, context);
+
 
   validate_properties(schema, compiled_schema, data, context);
 }

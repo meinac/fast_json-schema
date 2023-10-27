@@ -51,4 +51,6 @@ extern VALUE properties_str,
              dependentRequired_str,
              dependencies_str;
 
+extern VALUE object_str;
+
 void Init_keywords();

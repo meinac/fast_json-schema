@@ -63,27 +63,24 @@ void compile_pattern_properties_val(CompiledSchema *root_schema, VALUE ruby_sche
   root_schema->patternProperties_val = compile_properties(root_schema, ruby_schema, ref_hash, patternProperties_str, regexp_key_transform);
 }
 
-static void compile_array_dependency(VALUE dependencies_hash, VALUE key, VALUE value) {
-  long i;
-
-  for(i = 0; i < RARRAY_LEN(value); i++) {
-    VALUE entry = rb_ary_entry(value, i);
-
-    if(!RB_TYPE_P(entry, T_STRING)) return;
-  }
-
-  rb_hash_aset(dependencies_hash, key, rb_obj_dup(value));
-}
-
 static int compile_dependency(VALUE key, VALUE value, VALUE data) {
   if(!RB_TYPE_P(key, T_STRING)) return ST_CONTINUE;
 
-  struct memo_S *memo = (struct memo_S *)data;
+  if(RB_TYPE_P(value, T_ARRAY)) {
+    /*
+    * If the value is an array, we are creating a temporary Ruby hash and compiling it as
+    * if it was provided by the user which looks something like the following;
+    *
+    *   { "type" => "object", "required" => ["foo", "bar"] }
+    */
+    VALUE tmp_schema = rb_hash_new();
 
-  if(RB_TYPE_P(value, T_HASH)) {
+    rb_hash_aset(tmp_schema, required_str, value);
+    rb_hash_aset(tmp_schema, type_str, object_str);
+
+    compile_property(key, tmp_schema, data);
+  } else {
     compile_property(key, value, data);
-  } else if(RB_TYPE_P(value, T_ARRAY)) {
-    compile_array_dependency(memo->properties_hash, key, value);
   }
 
   return ST_CONTINUE;
@@ -97,7 +94,7 @@ void compile_dependencies_val(CompiledSchema *root_schema, VALUE ruby_schema, VA
   VALUE dependencies_val = rb_hash_new();
   VALUE dependencies_path = new_path(root_schema->path, dependencies_str);
 
-  struct memo_S memo = { root_schema->dependencies_val, ref_hash, dependencies_path, no_op_key_transform };
+  struct memo_S memo = { dependencies_val, ref_hash, dependencies_path, no_op_key_transform };
 
   rb_hash_foreach(dependencies, compile_dependency, (VALUE)&memo);
 

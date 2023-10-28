@@ -68,7 +68,7 @@ This gem is under development at the moment and I am planning to support only th
     - `minProperties` &check;
     - `required` &check;
     - `dependentRequired` &cross; (Draft 8)
-    - `dependencies` &cross;
+    - `dependencies` &check;
 - **Formats**
     - Enabling/disabling the `format` as assertion &cross;
     - `Custom format attributes` &cross;

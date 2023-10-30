@@ -53,7 +53,7 @@
       CompiledSchema *child_schema = create_compiled_schema(child_path, NO_FLAG); \
       compiled_schema->keyword##_schema = child_schema;                           \
                                                                                   \
-      compile(child_schema, keyword##_val, ref_hash);                             \
+      compile(child_schema, keyword##_val, ref_data);                             \
     }                                                                             \
   } while(0);
 
@@ -63,7 +63,7 @@
                                                                                                          \
     if(RB_TYPE_P(keyword##_val, T_ARRAY)) {                                                              \
       VALUE child_path = new_path(compiled_schema->path, keyword##_str);                                 \
-      compile_schema_collection(&(compiled_schema->keyword##_val), keyword##_val, ref_hash, child_path); \
+      compile_schema_collection(&(compiled_schema->keyword##_val), keyword##_val, ref_data, child_path); \
     }                                                                                                    \
   } while(0);
 
@@ -363,7 +363,7 @@ static validation_function type_validation_function(VALUE ruby_schema) {
   return no_op_validate;
 }
 
-void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_hash) {
+void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data) {
   compiled_schema->validation_function = no_op_validate;
 
   if(ruby_schema == Qfalse)
@@ -423,23 +423,23 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_hash)
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minProperties, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(required, T_ARRAY);
 
-  compile_properties_val(compiled_schema, ruby_schema, ref_hash);
-  compile_pattern_properties_val(compiled_schema, ruby_schema, ref_hash);
-  compile_dependencies_val(compiled_schema, ruby_schema, ref_hash);
+  compile_properties_val(compiled_schema, ruby_schema, ref_data);
+  compile_pattern_properties_val(compiled_schema, ruby_schema, ref_data);
+  compile_dependencies_val(compiled_schema, ruby_schema, ref_data);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 
   // Embed compiled schema into Ruby Hash
-  rb_hash_aset(ref_hash, compiled_schema->path, PTR2NUM(compiled_schema));
+  rb_hash_aset(ref_data, compiled_schema->path, PTR2NUM(compiled_schema));
 
   // Embed compiled schema into Ruby Hash again if it has an $id
   if(compiled_schema->id_val != Qundef)
-    rb_hash_aset(ref_hash, compiled_schema->id_val, PTR2NUM(compiled_schema));
+    rb_hash_aset(ref_data, compiled_schema->id_val, PTR2NUM(compiled_schema));
 }
 
 void compile_schema(VALUE self) {
   VALUE ruby_schema = rb_ivar_get(self, rb_intern("@ruby_schema"));
-  VALUE ref_hash = rb_hash_new();
+  VALUE ref_data = rb_hash_new();
 
   /*
   * Before running the compilation logic, we have to wrap the CompiledSchema struct into a
@@ -451,7 +451,7 @@ void compile_schema(VALUE self) {
   CompiledSchema *compiled_schema = create_compiled_schema(root_path_str, flags);
   VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
-  compile(compiled_schema, ruby_schema, ref_hash);
+  compile(compiled_schema, ruby_schema, ref_data);
 
   rb_ivar_set(self, rb_intern("compiled_schema"), compiled_schema_obj);
   rb_ivar_set(self, rb_intern("compiled"), Qtrue);

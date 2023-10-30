@@ -10,7 +10,7 @@ typedef VALUE (*key_transform_function)(VALUE);
 
 struct memo_S {
   VALUE properties_hash;
-  VALUE ref_hash;
+  VALUE ref_data;
   VALUE path;
   key_transform_function key_transform_function;
 };
@@ -33,14 +33,14 @@ static int compile_property(VALUE key, VALUE value, VALUE data) {
   CompiledSchema *compiled_schema = create_compiled_schema(path, EXPOSE_TO_RUBY);
   VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
-  compile(compiled_schema, value, memo->ref_hash);
+  compile(compiled_schema, value, memo->ref_data);
 
   rb_hash_aset(memo->properties_hash, memo->key_transform_function(key), compiled_schema_obj);
 
   return ST_CONTINUE;
 }
 
-static VALUE compile_properties(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_hash, VALUE keyword, key_transform_function func) {
+static VALUE compile_properties(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_data, VALUE keyword, key_transform_function func) {
   VALUE properties = rb_hash_aref(ruby_schema, keyword);
 
   if(!RB_TYPE_P(properties, T_HASH)) return Qundef;
@@ -48,19 +48,19 @@ static VALUE compile_properties(CompiledSchema *root_schema, VALUE ruby_schema, 
   VALUE properties_hash = rb_hash_new();
   VALUE properties_path = new_path(root_schema->path, keyword);
 
-  struct memo_S memo = { properties_hash, ref_hash, properties_path, func };
+  struct memo_S memo = { properties_hash, ref_data, properties_path, func };
 
   rb_hash_foreach(properties, compile_property, (VALUE)&memo);
 
   return properties_hash;
 }
 
-void compile_properties_val(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_hash) {
-  root_schema->properties_val = compile_properties(root_schema, ruby_schema, ref_hash, properties_str, no_op_key_transform);
+void compile_properties_val(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_data) {
+  root_schema->properties_val = compile_properties(root_schema, ruby_schema, ref_data, properties_str, no_op_key_transform);
 }
 
-void compile_pattern_properties_val(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_hash) {
-  root_schema->patternProperties_val = compile_properties(root_schema, ruby_schema, ref_hash, patternProperties_str, regexp_key_transform);
+void compile_pattern_properties_val(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_data) {
+  root_schema->patternProperties_val = compile_properties(root_schema, ruby_schema, ref_data, patternProperties_str, regexp_key_transform);
 }
 
 static int compile_dependency(VALUE key, VALUE value, VALUE data) {
@@ -86,7 +86,7 @@ static int compile_dependency(VALUE key, VALUE value, VALUE data) {
   return ST_CONTINUE;
 }
 
-void compile_dependencies_val(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_hash) {
+void compile_dependencies_val(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_data) {
   VALUE dependencies = rb_hash_aref(ruby_schema, dependencies_str);
 
   if(!RB_TYPE_P(dependencies, T_HASH)) return;
@@ -94,7 +94,7 @@ void compile_dependencies_val(CompiledSchema *root_schema, VALUE ruby_schema, VA
   VALUE dependencies_val = rb_hash_new();
   VALUE dependencies_path = new_path(root_schema->path, dependencies_str);
 
-  struct memo_S memo = { dependencies_val, ref_hash, dependencies_path, no_op_key_transform };
+  struct memo_S memo = { dependencies_val, ref_data, dependencies_path, no_op_key_transform };
 
   rb_hash_foreach(dependencies, compile_dependency, (VALUE)&memo);
 

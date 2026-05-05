@@ -13,16 +13,6 @@ static CompiledSchema *root_schema(VALUE self) {
   return GetCompiledSchema(compiled_schema_obj, compiled_schema);
 }
 
-static Context initial_context() {
-  Context context;
-
-  context.path[0] = root_path_str;
-  context.depth = 0;
-  context.env = (ValidationEnv){ false };
-
-  return context;
-}
-
 VALUE rb_validate(VALUE self, VALUE data) {
   if (!rb_block_given_p()) {
     VALUE args[1] = { data };
@@ -31,18 +21,24 @@ VALUE rb_validate(VALUE self, VALUE data) {
   }
 
   CompiledSchema *schema = root_schema(self);
-  Context context = initial_context();
+  Context *context;
+  VALUE context_obj = create_context(&context);
 
-  schema->validation_function(self, schema, data, &context);
+  schema->validation_function(self, schema, data, context);
+
+  RB_GC_GUARD(context_obj);
 
   return Qnil;
 }
 
 VALUE rb_valid(VALUE self, VALUE data) {
   CompiledSchema *schema = root_schema(self);
-  Context context = initial_context();
+  Context *context;
+  VALUE context_obj = create_context(&context);
 
-  bool valid = is_valid(self, schema, data, &context);
+  bool valid = is_valid(self, schema, data, context);
+
+  RB_GC_GUARD(context_obj);
 
   return valid ? Qtrue : Qfalse;
 }
@@ -62,6 +58,7 @@ void Init_schema() {
   Init_keywords();
   Init_error(schema_class);
   Init_compiled_schema(schema_class);
+  Init_context();
 
   rb_define_method(schema_class, "compile", rb_compile, 0);
   rb_define_method(schema_class, "validate", rb_validate, 1);

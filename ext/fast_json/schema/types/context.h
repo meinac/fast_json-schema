@@ -17,6 +17,9 @@ typedef struct context_struct {
   ValidationEnv env;
 } Context;
 
+VALUE create_context(Context **out_context);
+void Init_context(void);
+
 #endif
 
 #define INCR_CONTEXT(context)                             \

@@ -13,4 +13,13 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  config.around(:each, :gc_stress) do |example|
+    previous = GC.stress
+    GC.stress = true
+
+    example.run
+  ensure
+    GC.stress = previous
+  end
 end

@@ -1,10 +1,15 @@
 #include "path.h"
 
 VALUE new_path(VALUE root, VALUE name) {
-  char *root_ptr = StringValueCStr(root);
-  char *name_ptr = StringValueCStr(name);
+  StringValue(root);
+  StringValue(name);
 
-  return rb_sprintf("%s/%s", root_ptr, name_ptr);
+  VALUE result = rb_str_dup(root);
+
+  rb_str_cat_cstr(result, "/");
+  rb_str_buf_append(result, name);
+
+  return result;
 }
 
 VALUE to_path(VALUE *list, int depth) {
@@ -29,7 +34,11 @@ VALUE to_path(VALUE *list, int depth) {
 }
 
 VALUE append_long_to_path(VALUE root, long i) {
-  char *root_ptr = StringValueCStr(root);
+  StringValue(root);
 
-  return rb_sprintf("%s/%ld", root_ptr, i);
+  VALUE result = rb_str_dup(root);
+  VALUE suffix = rb_sprintf("/%ld", i);
+  rb_str_buf_append(result, suffix);
+
+  return result;
 }

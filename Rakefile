@@ -4,7 +4,15 @@ require "bundler/gem_tasks"
 require "rspec/core/rake_task"
 require "rake/extensiontask"
 
-RSpec::Core::RakeTask.new(:spec)
+RSpec::Core::RakeTask.new(:spec) do |t|
+  t.exclude_pattern = "spec/gc_stress/**/*_spec.rb"
+end
+
+namespace :spec do
+  RSpec::Core::RakeTask.new(:gc_stress) do |t|
+    t.pattern = "spec/gc_stress/**/*_spec.rb"
+  end
+end
 
 task default: [:compile, :spec]
 

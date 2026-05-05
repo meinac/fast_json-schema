@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "stress_spec_helper"
+
 RSpec.describe "FastJSON::Schema path GC safety" do
   context "with a deeply nested schema" do
     let(:ruby_schema) do

@@ -15,7 +15,7 @@ VALUE to_path(VALUE *list, int depth) {
     if(RB_TYPE_P(list[i], T_STRING)) {
       rb_str_append(path, list[i]);
     } else if (RB_INTEGER_TYPE_P(list[i])) {
-      VALUE str = rb_sprintf("%d", FIX2INT(list[i]));
+      VALUE str = rb_sprintf("%ld", NUM2LONG(list[i]));
 
       rb_str_append(path, str);
     } else {

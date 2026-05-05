@@ -4,6 +4,10 @@ require "bundler/gem_tasks"
 require "rspec/core/rake_task"
 require "rake/extensiontask"
 
+RSpec::Core::RakeTask.new(:all_specs) do |t|
+  t.pattern = "spec/**/*_spec.rb"
+end
+
 RSpec::Core::RakeTask.new(:spec) do |t|
   t.exclude_pattern = "spec/gc_stress/**/*_spec.rb"
 end
@@ -14,6 +18,7 @@ namespace :spec do
   end
 end
 
+task all: [:compile, :spec, :all_specs]
 task default: [:compile, :spec]
 
 Rake::ExtensionTask.new "schema" do |ext|

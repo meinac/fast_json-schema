@@ -18,7 +18,7 @@ namespace :spec do
   end
 end
 
-task all: [:compile, :spec, :all_specs]
+task all: [:compile, :all_specs]
 task default: [:compile, :spec]
 
 Rake::ExtensionTask.new "schema" do |ext|

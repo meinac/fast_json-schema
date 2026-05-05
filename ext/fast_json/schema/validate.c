@@ -1,24 +1,6 @@
 #include "validate.h"
 #include "error.h"
 
-bool is_valid(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
-  int result;
-  ValidationEnv old_env;
-  SET_JUMP(context->env, old_env, result);
-
-  if (result) {
-    RESET_JUMP(context->env, old_env);
-
-    return false;
-  } else {
-    compiled_schema->validation_function(schema, compiled_schema, data, context);
-  }
-
-  RESET_JUMP(context->env, old_env);
-
-  return true;
-}
-
 void no_op_validate(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   return;
 }

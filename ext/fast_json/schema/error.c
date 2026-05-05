@@ -1,10 +1,12 @@
 #include "error.h"
 #include "path.h"
+#include "is_valid.h"
 
 static VALUE error_class;
 
 void yield_error(CompiledSchema *compiled_schema, VALUE data, Context *context, const char *type) {
-  JUMP_IF_SET(context->env);
+  if(context->short_circuit_on_error)
+    rb_throw_obj(short_circuit_tag, Qfalse);
 
   VALUE args[4];
   args[0] = compiled_schema->path;

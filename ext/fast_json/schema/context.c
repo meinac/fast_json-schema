@@ -53,7 +53,7 @@ static VALUE alloc_context(VALUE klass) {
 
   context->depth = 0;
   context->path[0] = root_path_str;
-  context->env = (ValidationEnv){ false };
+  context->short_circuit_on_error = false;
 
   return object;
 }

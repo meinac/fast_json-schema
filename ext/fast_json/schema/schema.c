@@ -3,6 +3,7 @@
 #include "compiled_schema.h"
 #include "types/context.h"
 #include "error.h"
+#include "is_valid.h"
 
 extern bool is_valid(VALUE, CompiledSchema *, VALUE, Context *);
 
@@ -59,6 +60,7 @@ void Init_schema() {
   Init_error(schema_class);
   Init_compiled_schema(schema_class);
   Init_context();
+  Init_is_valid();
 
   rb_define_method(schema_class, "compile", rb_compile, 0);
   rb_define_method(schema_class, "validate", rb_validate, 1);

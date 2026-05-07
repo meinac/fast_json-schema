@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/inline"
+
+gemfile(true) do
+  source "https://rubygems.org"
+  gem "benchmark-ips"
+  gem "json_schemer"
+  gem "memory_profiler"
+  gem "fast_json-schema", path: File.expand_path("..", __dir__)
+end
+
+require "json"
+require "benchmark/ips"
+require "memory_profiler"
+
+data_dir = File.expand_path("../data", __dir__)
+schema   = JSON.parse(File.read(File.join(data_dir, "schema.json")))
+valid_data    = JSON.parse(File.read(File.join(data_dir, "valid.json")))
+invalid_data  = JSON.parse(File.read(File.join(data_dir, "invalid.json")))
+
+fast    = FastJSON::Schema.create(schema)
+schemer = JSONSchemer.schema(schema)
+
+abort "fast_json-schema rejects valid fixture"   unless fast.valid?(valid_data)
+abort "fast_json-schema accepts invalid fixture" if     fast.valid?(invalid_data)
+abort "json_schemer rejects valid fixture"       unless schemer.valid?(valid_data)
+abort "json_schemer accepts invalid fixture"     if     schemer.valid?(invalid_data)
+
+puts "\n=== IPS: valid?(VALID) ==="
+Benchmark.ips do |x|
+  x.report("fast_json-schema") { fast.valid?(valid_data) }
+  x.report("json_schemer")     { schemer.valid?(valid_data) }
+  x.compare!
+end
+
+puts "\n=== IPS: valid?(INVALID) ==="
+Benchmark.ips do |x|
+  x.report("fast_json-schema") { fast.valid?(invalid_data) }
+  x.report("json_schemer")     { schemer.valid?(invalid_data) }
+  x.compare!
+end
+
+def memprof(label)
+  report = MemoryProfiler.report { yield }
+  puts "\n--- #{label} ---"
+  report.pretty_print(scale_bytes: true, detailed_report: false)
+end
+
+ITERATIONS = 1_000
+
+puts "\n=== Memory: valid?(VALID) x #{ITERATIONS} ==="
+memprof("fast_json-schema") { ITERATIONS.times { fast.valid?(valid_data) } }
+memprof("json_schemer")     { ITERATIONS.times { schemer.valid?(valid_data) } }
+
+puts "\n=== Memory: valid?(INVALID) x #{ITERATIONS} ==="
+memprof("fast_json-schema") { ITERATIONS.times { fast.valid?(invalid_data) } }
+memprof("json_schemer")     { ITERATIONS.times { schemer.valid?(invalid_data) } }

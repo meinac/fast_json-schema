@@ -1,0 +1,27 @@
+{
+  "id": "not-a-uuid",
+  "kind": "premium",
+  "name": "",
+  "email": "no-at-symbol",
+  "age": 200,
+  "rating": 4.3,
+  "tags": ["UPPER", "ok-tag", "ok-tag"],
+  "address": {
+    "street": "1 Bad St",
+    "city": "Nowhere",
+    "zip": "lower-case",
+    "country": "United Kingdom"
+  },
+  "scores": [10, 200, -5],
+  "coords": [500, "north"],
+  "contact": {
+    "type": "phone",
+    "value": "abc"
+  },
+  "preferences": {
+    "pref_ok": true,
+    "BAD_KEY": "nope"
+  },
+  "meta": { "source": "" },
+  "audit": { "created_at": "short" }
+}

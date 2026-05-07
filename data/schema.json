@@ -1,0 +1,132 @@
+{
+  "type": "object",
+  "required": ["id", "kind", "name", "email", "age", "tags", "address", "scores", "coords"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["basic", "premium", "enterprise"]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "email": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 120,
+      "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+    },
+    "age": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 150
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "multipleOf": 0.5
+    },
+    "tags": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 24,
+        "pattern": "^[a-z][a-z0-9_-]*$"
+      }
+    },
+    "address": {
+      "type": "object",
+      "required": ["street", "city", "country"],
+      "properties": {
+        "street": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "city":   { "type": "string", "minLength": 1, "maxLength": 80 },
+        "zip":    { "type": "string", "pattern": "^[A-Z0-9 -]{3,12}$" },
+        "country":{ "type": "string", "minLength": 2, "maxLength": 2, "pattern": "^[A-Z]{2}$" }
+      },
+      "dependencies": {
+        "zip": ["city"]
+      },
+      "additionalProperties": false
+    },
+    "scores": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": [
+        { "type": "integer", "minimum": 0, "maximum": 100 },
+        { "type": "integer", "minimum": 0, "maximum": 100 },
+        { "type": "integer", "minimum": 0, "maximum": 100 }
+      ],
+      "additionalItems": false
+    },
+    "coords": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "number", "minimum": -180, "maximum": 180 }
+    },
+    "contact": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "value"],
+          "properties": {
+            "type":  { "const": "phone" },
+            "value": { "type": "string", "pattern": "^\\+?[0-9 \\-]{7,20}$" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["type", "value"],
+          "properties": {
+            "type":  { "const": "address" },
+            "value": { "$ref": "#/properties/address" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "preferences": {
+      "type": "object",
+      "patternProperties": {
+        "^pref_[a-z0-9_]+$": { "type": ["string", "boolean", "number"] }
+      },
+      "additionalProperties": false,
+      "maxProperties": 32
+    },
+    "meta": {
+      "anyOf": [
+        { "type": "object", "required": ["source"], "properties": { "source": { "type": "string", "minLength": 1 } } },
+        { "type": "null" }
+      ]
+    },
+    "audit": {
+      "allOf": [
+        { "type": "object", "required": ["created_at"] },
+        { "type": "object", "properties": { "created_at": { "type": "string", "minLength": 10 } } }
+      ]
+    },
+    "subscription_id": {
+      "type": "string",
+      "pattern": "^sub_[A-Za-z0-9]{10,}$"
+    }
+  },
+  "if": {
+    "properties": { "kind": { "const": "premium" } }
+  },
+  "then": {
+    "required": ["subscription_id"]
+  },
+  "additionalProperties": false
+}

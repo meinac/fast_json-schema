@@ -5,6 +5,8 @@
 #include "value_pointer_caster.h"
 #include "properties_val.h"
 #include "schema_collection.h"
+#include "ref.h"
+#include "ref_resolver.h"
 
 #define ASSIGN_ANY_VALUE_TO_COMPILED_SCHEMA(keyword)                           \
   do {                                                                         \
@@ -293,6 +295,8 @@ CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
   compiled_schema->recursiveAnchor_val = Qundef;
   compiled_schema->recursiveRef_val = Qundef;
 
+  compiled_schema->ref_schema = NULL;
+
   compiled_schema->const_val = Qundef;
   compiled_schema->enum_val = Qundef;
 
@@ -364,6 +368,9 @@ static validation_function type_validation_function(VALUE ruby_schema) {
 }
 
 void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data) {
+  // Embed compiled schema into Ruby Hash for ref resolution
+  register_schema_for_ref_resolution(compiled_schema, ref_data);
+
   compiled_schema->validation_function = no_op_validate;
 
   if(ruby_schema == Qfalse)
@@ -384,6 +391,12 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data)
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(ref, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(recursiveAnchor, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(recursiveRef, T_STRING);
+
+  if(compiled_schema->ref_val != Qundef) {
+    compiled_schema->validation_function = validate_ref;
+
+    return;
+  }
 
   ASSIGN_ANY_VALUE_TO_COMPILED_SCHEMA(const);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(enum, T_ARRAY);
@@ -428,13 +441,6 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data)
   compile_dependencies_val(compiled_schema, ruby_schema, ref_data);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
-
-  // Embed compiled schema into Ruby Hash
-  rb_hash_aset(ref_data, compiled_schema->path, PTR2NUM(compiled_schema));
-
-  // Embed compiled schema into Ruby Hash again if it has an $id
-  if(compiled_schema->id_val != Qundef)
-    rb_hash_aset(ref_data, compiled_schema->id_val, PTR2NUM(compiled_schema));
 }
 
 void compile_schema(VALUE self) {
@@ -452,6 +458,7 @@ void compile_schema(VALUE self) {
   VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
   compile(compiled_schema, ruby_schema, ref_data);
+  resolve_refs(compiled_schema, ref_data);
 
   rb_ivar_set(self, rb_intern("compiled_schema"), compiled_schema_obj);
   rb_ivar_set(self, rb_intern("compiled"), Qtrue);

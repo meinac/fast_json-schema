@@ -9,6 +9,8 @@ class FastJSON
         @data_path = data_path
         @type = type
       end
+
+      attr_reader :schema_path, :data, :data_path, :type
     end
   end
 end

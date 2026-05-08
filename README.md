@@ -73,9 +73,9 @@ This gem is under development at the moment and I am planning to support only th
     - Enabling/disabling the `format` as assertion &cross;
     - `Custom format attributes` &cross;
     - Dates, Times, and Duration
-        - `date-time` &cross;
-        - `date` &cross;
-        - `time` &cross;
+        - `date-time` &check;
+        - `date` &check;
+        - `time` &check;
         - `duration` &cross; (Draft 8)
     - Email Addresses
         - `email` &cross;

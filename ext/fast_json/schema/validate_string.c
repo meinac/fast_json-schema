@@ -1,5 +1,6 @@
 #include "validate_string.h"
 #include "error.h"
+#include "formats/format.h"
 
 void validate_string(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   if(!RB_TYPE_P(data, T_STRING))
@@ -22,4 +23,6 @@ void validate_string(VALUE schema, CompiledSchema *compiled_schema, VALUE data, 
     if(NIL_P(result))
       yield_error(compiled_schema, data, context, "pattern");
   }
+
+  compiled_schema->format_validation_function(schema, compiled_schema, data, context);
 }

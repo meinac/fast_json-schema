@@ -7,6 +7,7 @@
 #include "schema_collection.h"
 #include "ref.h"
 #include "ref_resolver.h"
+#include "formats/format.h"
 
 #define ASSIGN_ANY_VALUE_TO_COMPILED_SCHEMA(keyword)                           \
   do {                                                                         \
@@ -419,6 +420,9 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data)
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(maxLength, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minLength, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(pattern, T_STRING);
+
+  VALUE format_val = rb_hash_aref(ruby_schema, format_str);
+  compiled_schema->format_validation_function = format_validation_function_for(format_val);
 
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(items);
   ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(items);

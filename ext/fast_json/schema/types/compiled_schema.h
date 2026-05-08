@@ -14,6 +14,7 @@
 typedef struct compiled_schema_struct CompiledSchema;
 
 typedef void (*validation_function)(VALUE, CompiledSchema *, VALUE, Context *);
+typedef void (*format_validation_function)(VALUE, CompiledSchema *, VALUE, Context *);
 
 typedef unsigned char schema_flag_t;
 
@@ -36,6 +37,7 @@ typedef struct compiled_schema_struct {
 
   validation_function validation_function;
   validation_function type_validation_function;
+  format_validation_function format_validation_function;
 
   VALUE const_val;
   VALUE enum_val;

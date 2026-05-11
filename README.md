@@ -92,7 +92,7 @@ This gem is under development at the moment and I am planning to support only th
         - `iri` &check;
         - `iri-reference` &check;
         - `uuid` &cross; (Draft 8)
-    - `uri-template` &cross;
+    - `uri-template` &check;
     - JSON Pointers
         - `json-pointer` &cross;
         - `relative-json-pointer` &cross;

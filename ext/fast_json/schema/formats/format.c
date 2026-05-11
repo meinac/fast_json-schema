@@ -12,6 +12,7 @@
 #include "uri_reference.h"
 #include "iri.h"
 #include "iri_reference.h"
+#include "uri_template.h"
 
 void no_op_format_validate(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   return;
@@ -35,6 +36,7 @@ format_validation_function format_validation_function_for(VALUE format_val) {
   if(strcmp(format_str, "uri-reference") == 0) return validate_format_uri_reference;
   if(strcmp(format_str, "iri") == 0)           return validate_format_iri;
   if(strcmp(format_str, "iri-reference") == 0) return validate_format_iri_reference;
+  if(strcmp(format_str, "uri-template") == 0)  return validate_format_uri_template;
 
   return no_op_format_validate;
 }

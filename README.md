@@ -81,8 +81,8 @@ This gem is under development at the moment and I am planning to support only th
         - `email` &check;
         - `idn-email` &check;
     - Hostnames
-        - `hostname` &cross;
-        - `idn-hostname` &cross;
+        - `hostname` &check;
+        - `idn-hostname` &check;
     - IP Addresses
         - `IPv4` &cross;
         - `IPv6` &cross;

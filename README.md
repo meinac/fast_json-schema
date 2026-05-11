@@ -78,8 +78,8 @@ This gem is under development at the moment and I am planning to support only th
         - `time` &check;
         - `duration` &cross; (Draft 8)
     - Email Addresses
-        - `email` &cross;
-        - `idn-email` &cross;
+        - `email` &check;
+        - `idn-email` &check;
     - Hostnames
         - `hostname` &cross;
         - `idn-hostname` &cross;

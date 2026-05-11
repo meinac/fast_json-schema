@@ -84,8 +84,8 @@ This gem is under development at the moment and I am planning to support only th
         - `hostname` &check;
         - `idn-hostname` &check;
     - IP Addresses
-        - `IPv4` &cross;
-        - `IPv6` &cross;
+        - `IPv4` &check;
+        - `IPv6` &check;
     - Resource Identifiers
         - `uri` &cross;
         - `uri-reference` &cross;

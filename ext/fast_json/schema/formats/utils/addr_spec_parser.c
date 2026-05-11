@@ -1,18 +1,18 @@
 #include "formats/utils/addr_spec_parser.h"
 #include "formats/utils/utf8.h"
+#include "formats/utils/ip_parser.h"
 
 #include <stdbool.h>
 #include <string.h>
 
 /*
-* RFC 5321 length limits.
+* RFC 5321 section 4.1.3 length limits.
 */
 #define MAX_LOCAL_PART  64
 #define MAX_DOMAIN     255
 
 #define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
 #define IS_ALPHA(c) (((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
-#define IS_HEX(c)   (IS_DIGIT(c) || ((c) >= 'A' && (c) <= 'F') || ((c) >= 'a' && (c) <= 'f'))
 
 /*
 * atext per RFC 5322:
@@ -43,7 +43,7 @@ static bool is_qtext(unsigned char c) {
 }
 
 /*
-* General-address-literal dcontent per RFC 5321 §4.1.3:
+* General-address-literal dcontent per RFC 5321 section 4.1.3:
 *   dcontent = %d33-90 / %d94-126
 */
 static bool is_dcontent(unsigned char c) {
@@ -189,143 +189,13 @@ static long parse_local_part(const char *s, long len, bool allow_utf8) {
 }
 
 /*
-* IPv4-address-literal per RFC 5321:
-*   Snum "." Snum "." Snum "." Snum
-*   Snum = 1*3DIGIT, value 0..255
-*/
-static bool parse_ipv4_literal(const char *s, long len) {
-  long pos = 0;
-
-  for(int i = 0; i < 4; i++) {
-    if(pos >= len) return false;
-    if(!IS_DIGIT(s[pos])) return false;
-
-    int value = 0;
-    int digits = 0;
-
-    while(pos < len && IS_DIGIT(s[pos]) && digits < 3) {
-      value = value * 10 + (s[pos] - '0');
-      pos++;
-      digits++;
-    }
-
-    if(value > 255) return false;
-
-    if(i < 3) {
-      if(pos >= len || s[pos] != '.') return false;
-      pos++;
-    }
-  }
-
-  return pos == len;
-}
-
-/*
-* Parse an IPv6 hex group: 1-4 hex digits.
-* Returns the number of digits consumed, or 0 if none.
-*/
-static int parse_ipv6_group(const char *s, long len) {
-  int digits = 0;
-
-  while(digits < 4 && digits < len && IS_HEX((unsigned char)s[digits])) digits++;
-
-  return digits;
-}
-
-/*
-* IPv6-address-literal per RFC 4291 / RFC 5321 §4.1.3:
-*   IPv6-addr =  IPv6-full / IPv6-comp / IPv6v4-full / IPv6v4-comp
-*
-* Rules implemented:
-*   - Up to 8 groups of 1-4 hex digits separated by ":"
-*   - At most one "::" compression that may stand for one or more zero groups
-*   - Optional trailing IPv4 dotted form, which counts as 2 groups
-*/
-static bool parse_ipv6_addr(const char *s, long len) {
-  long pos = 0;
-  int groups = 0;
-  bool seen_compression = false;
-  int groups_before_compression = 0;
-  bool last_was_group = false;
-
-  if(len >= 2 && s[0] == ':' && s[1] == ':') {
-    seen_compression = true;
-    pos = 2;
-  } else if(len >= 1 && s[0] == ':') {
-    return false;
-  }
-
-  while(pos < len) {
-    /* Try IPv4 tail first when we are at the start of a group and there are dots ahead. */
-    if(!last_was_group) {
-      bool has_dot = false;
-
-      for(long k = pos; k < len; k++) {
-        if(s[k] == '.') { has_dot = true; break; }
-        if(s[k] == ':') break;
-      }
-
-      if(has_dot) {
-        if(!parse_ipv4_literal(s + pos, len - pos)) return false;
-
-        groups += 2;
-        pos = len;
-        last_was_group = true;
-        break;
-      }
-    }
-
-    int g = parse_ipv6_group(s + pos, len - pos);
-
-    if(g == 0) return false;
-
-    pos += g;
-    groups++;
-    last_was_group = true;
-
-    if(pos == len) break;
-
-    if(s[pos] != ':') return false;
-
-    /* Possible "::" compression. */
-    if(pos + 1 < len && s[pos + 1] == ':') {
-      if(seen_compression) return false;
-
-      seen_compression = true;
-      groups_before_compression = groups;
-      pos += 2;
-      last_was_group = false;
-
-      if(pos == len) break; // trailing "::"
-      continue;
-    }
-
-    pos++;
-    last_was_group = false;
-  }
-
-  if(pos != len) return false;
-
-  if(!last_was_group && !seen_compression) return false; // trailing single ":"
-
-  if(seen_compression) {
-    if(groups > 7) return false;
-
-    (void)groups_before_compression;
-    return true;
-  }
-
-  return groups == 8;
-}
-
-/*
-* IPv6-address-literal: "IPv6:" IPv6-addr
+* IPv6-address-literal per RFC 5321 section 4.1.3: "IPv6:" IPv6-addr
 */
 static bool parse_ipv6_literal(const char *s, long len) {
   if(len < 5) return false;
   if(memcmp(s, "IPv6:", 5) != 0) return false;
 
-  return parse_ipv6_addr(s + 5, len - 5);
+  return parse_ipv6(s + 5, len - 5);
 }
 
 /*
@@ -349,7 +219,7 @@ static bool parse_ldh_str(const char *s, long len) {
 }
 
 /*
-* General-address-literal per RFC 5321 §4.1.3:
+* General-address-literal per RFC 5321 section 4.1.3:
 *   Standardized-tag ":" 1*dcontent
 *   Standardized-tag = Ldh-str
 */
@@ -409,7 +279,7 @@ static bool parse_general_address_literal(const char *s, long len, bool allow_ut
 * UTF-8 in dcontent; IPv4 and IPv6 literals remain ASCII.
 */
 static bool parse_domain_literal_body(const char *s, long len, bool allow_utf8) {
-  if(parse_ipv4_literal(s, len)) return true;
+  if(parse_ipv4(s, len)) return true;
   if(parse_ipv6_literal(s, len)) return true;
 
   return parse_general_address_literal(s, len, allow_utf8);

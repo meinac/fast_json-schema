@@ -87,10 +87,10 @@ This gem is under development at the moment and I am planning to support only th
         - `IPv4` &check;
         - `IPv6` &check;
     - Resource Identifiers
-        - `uri` &cross;
-        - `uri-reference` &cross;
-        - `iri` &cross;
-        - `iri-reference` &cross;
+        - `uri` &check;
+        - `uri-reference` &check;
+        - `iri` &check;
+        - `iri-reference` &check;
         - `uuid` &cross; (Draft 8)
     - `uri-template` &cross;
     - JSON Pointers

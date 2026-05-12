@@ -39,6 +39,9 @@ typedef struct compiled_schema_struct {
   validation_function type_validation_function;
   format_validation_function format_validation_function;
 
+  VALUE custom_format_callable_val;
+  VALUE custom_format_error_key_val;
+
   VALUE const_val;
   VALUE enum_val;
 

@@ -1,6 +1,9 @@
 {
   "type": "object",
-  "required": ["id", "kind", "name", "email", "age", "tags", "address", "scores", "coords"],
+  "required": [
+    "id", "kind", "name", "email", "age", "tags", "address", "scores", "coords",
+    "homepage", "birthday", "primary_ip", "server_hostname"
+  ],
   "properties": {
     "id": {
       "type": "string",
@@ -19,7 +22,7 @@
       "type": "string",
       "minLength": 5,
       "maxLength": 120,
-      "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+      "format": "email"
     },
     "age": {
       "type": "integer",
@@ -114,13 +117,28 @@
     "audit": {
       "allOf": [
         { "type": "object", "required": ["created_at"] },
-        { "type": "object", "properties": { "created_at": { "type": "string", "minLength": 10 } } }
+        { "type": "object", "properties": { "created_at": { "type": "string", "minLength": 10, "format": "date-time" } } }
       ]
     },
     "subscription_id": {
       "type": "string",
       "pattern": "^sub_[A-Za-z0-9]{10,}$"
-    }
+    },
+    "homepage":         { "type": "string", "format": "uri" },
+    "birthday":         { "type": "string", "format": "date" },
+    "primary_ip":       { "type": "string", "format": "ipv4" },
+    "server_hostname":  { "type": "string", "format": "hostname" },
+    "avatar":           { "type": "string", "format": "uri-reference" },
+    "intl_homepage":    { "type": "string", "format": "iri" },
+    "intl_avatar":      { "type": "string", "format": "iri-reference" },
+    "wake_time":        { "type": "string", "format": "time" },
+    "fallback_ip":      { "type": "string", "format": "ipv6" },
+    "intl_hostname":    { "type": "string", "format": "idn-hostname" },
+    "intl_email":       { "type": "string", "format": "idn-email" },
+    "search_template":  { "type": "string", "format": "uri-template" },
+    "username_pattern": { "type": "string", "format": "regex" },
+    "notes_pointer":    { "type": "string", "format": "json-pointer" },
+    "ancestor_pointer": { "type": "string", "format": "relative-json-pointer" }
   },
   "if": {
     "properties": { "kind": { "const": "premium" } }

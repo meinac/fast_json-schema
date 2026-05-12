@@ -1,16 +1,16 @@
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "kind": "premium",
-  "name": "Alice Example",
+  "name": "Ayşe Yılmaz",
   "email": "alice@example.com",
   "age": 34,
   "rating": 4.5,
   "tags": ["ruby", "json", "schema_v2", "fast-validator"],
   "address": {
     "street": "221B Baker Street",
-    "city": "London",
+    "city": "İstanbul",
     "zip": "NW1 6XE",
-    "country": "GB"
+    "country": "TR"
   },
   "scores": [88, 92, 75],
   "coords": [51.5237, -0.1585],
@@ -30,5 +30,20 @@
   },
   "meta": { "source": "import" },
   "audit": { "created_at": "2024-04-01T08:30:00Z" },
-  "subscription_id": "sub_ABCdef0123456789"
+  "subscription_id": "sub_ABCdef0123456789",
+  "homepage": "https://example.com/profile",
+  "birthday": "1990-05-12",
+  "primary_ip": "192.168.0.42",
+  "server_hostname": "api.example.com",
+  "avatar": "/avatars/alice.png",
+  "intl_homepage": "https://çiçek.example.com/üye/işlem",
+  "intl_avatar": "/üyeler/ayşe.png",
+  "wake_time": "06:30:00Z",
+  "fallback_ip": "2001:db8::1",
+  "intl_hostname": "çiçek.istanbul",
+  "intl_email": "ayşe@çiçek.istanbul",
+  "search_template": "https://example.com/search{?q,lang*}",
+  "username_pattern": "^[a-z][a-z0-9_-]*$",
+  "notes_pointer": "/notes/0/body",
+  "ancestor_pointer": "1/foo"
 }

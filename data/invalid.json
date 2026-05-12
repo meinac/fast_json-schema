@@ -23,5 +23,9 @@
     "BAD_KEY": "nope"
   },
   "meta": { "source": "" },
-  "audit": { "created_at": "short" }
+  "audit": { "created_at": "short" },
+  "homepage": "not a uri",
+  "birthday": "1990-13-99",
+  "primary_ip": "999.0.0.1",
+  "server_hostname": "-bad-start.example.com"
 }

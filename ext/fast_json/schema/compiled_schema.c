@@ -56,18 +56,18 @@
       CompiledSchema *child_schema = create_compiled_schema(child_path, NO_FLAG); \
       compiled_schema->keyword##_schema = child_schema;                           \
                                                                                   \
-      compile(child_schema, keyword##_val, ref_data);                             \
+      compile(child_schema, keyword##_val, ref_data, custom_formats);             \
     }                                                                             \
   } while(0);
 
-#define ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(keyword)                                             \
-  do {                                                                                                   \
-    VALUE keyword##_val = rb_hash_lookup2(ruby_schema, keyword##_str, Qundef);                           \
-                                                                                                         \
-    if(RB_TYPE_P(keyword##_val, T_ARRAY)) {                                                              \
-      VALUE child_path = new_path(compiled_schema->path, keyword##_str);                                 \
-      compile_schema_collection(&(compiled_schema->keyword##_val), keyword##_val, ref_data, child_path); \
-    }                                                                                                    \
+#define ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(keyword)                                                             \
+  do {                                                                                                                   \
+    VALUE keyword##_val = rb_hash_lookup2(ruby_schema, keyword##_str, Qundef);                                           \
+                                                                                                                         \
+    if(RB_TYPE_P(keyword##_val, T_ARRAY)) {                                                                              \
+      VALUE child_path = new_path(compiled_schema->path, keyword##_str);                                                 \
+      compile_schema_collection(&(compiled_schema->keyword##_val), keyword##_val, ref_data, child_path, custom_formats); \
+    }                                                                                                                    \
   } while(0);
 
 #define COMPACT_VALUE(keyword)                                                         \
@@ -127,6 +127,9 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_VALUE(maxLength);
   MARK_VALUE(minLength);
   MARK_VALUE(pattern);
+
+  MARK_VALUE(custom_format_callable);
+  MARK_VALUE(custom_format_error_key);
 
   MARK_VALUE(items); // This will mark the `items_val` not the `items_schema`.
   MARK_VALUE(maxItems);
@@ -225,6 +228,9 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_VALUE(minLength);
   COMPACT_VALUE(pattern);
 
+  COMPACT_VALUE(custom_format_callable);
+  COMPACT_VALUE(custom_format_error_key);
+
   COMPACT_VALUE(items); // This will compact the `items_val` not `items_schema`.
   COMPACT_VALUE(maxItems);
   COMPACT_VALUE(minItems);
@@ -320,6 +326,9 @@ CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
   compiled_schema->minLength_val = Qundef;
   compiled_schema->pattern_val = Qundef;
 
+  compiled_schema->custom_format_callable_val = Qundef;
+  compiled_schema->custom_format_error_key_val = Qundef;
+
   compiled_schema->items_schema = NULL;
   compiled_schema->items_val = Qundef;
   compiled_schema->additionalItems_schema = NULL;
@@ -368,7 +377,7 @@ static validation_function type_validation_function(VALUE ruby_schema) {
   return no_op_validate;
 }
 
-void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data) {
+void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data, VALUE custom_formats) {
   // Embed compiled schema into Ruby Hash for ref resolution
   register_schema_for_ref_resolution(compiled_schema, ref_data);
 
@@ -421,9 +430,6 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data)
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minLength, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(pattern, T_STRING);
 
-  VALUE format_val = rb_hash_aref(ruby_schema, format_str);
-  compiled_schema->format_validation_function = format_validation_function_for(format_val);
-
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(items);
   ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(items);
   ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(additionalItems);
@@ -440,9 +446,12 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data)
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_2(minProperties, T_FIXNUM, T_BIGNUM);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(required, T_ARRAY);
 
-  compile_properties_val(compiled_schema, ruby_schema, ref_data);
-  compile_pattern_properties_val(compiled_schema, ruby_schema, ref_data);
-  compile_dependencies_val(compiled_schema, ruby_schema, ref_data);
+  compile_properties_val(compiled_schema, ruby_schema, ref_data, custom_formats);
+  compile_pattern_properties_val(compiled_schema, ruby_schema, ref_data, custom_formats);
+  compile_dependencies_val(compiled_schema, ruby_schema, ref_data, custom_formats);
+
+  VALUE format_val = rb_hash_aref(ruby_schema, format_str);
+  set_format_validation_function_for_compiled_schema(compiled_schema, format_val, custom_formats);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
 }
@@ -461,7 +470,9 @@ void compile_schema(VALUE self) {
   CompiledSchema *compiled_schema = create_compiled_schema(root_path_str, flags);
   VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
-  compile(compiled_schema, ruby_schema, ref_data);
+  VALUE custom_formats = rb_ivar_get(self, rb_intern("@custom_formats"));
+
+  compile(compiled_schema, ruby_schema, ref_data, custom_formats);
   resolve_refs(compiled_schema, ref_data);
 
   rb_ivar_set(self, rb_intern("compiled_schema"), compiled_schema_obj);

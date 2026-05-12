@@ -3,9 +3,9 @@
 #include "path.h"
 
 extern CompiledSchema *create_compiled_schema(VALUE, schema_flag_t);
-extern void compile(CompiledSchema *, VALUE, VALUE);
+extern void compile(CompiledSchema *, VALUE, VALUE, VALUE);
 
-void compile_schema_collection(VALUE *schema_member, VALUE ruby_schema_array, VALUE ref_data, VALUE path) {
+void compile_schema_collection(VALUE *schema_member, VALUE ruby_schema_array, VALUE ref_data, VALUE path, VALUE custom_formats) {
   long i;
   VALUE compiled_schema_collection = rb_ary_new();
 
@@ -20,7 +20,7 @@ void compile_schema_collection(VALUE *schema_member, VALUE ruby_schema_array, VA
     CompiledSchema *compiled_schema = create_compiled_schema(new_path, EXPOSE_TO_RUBY);
     VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
-    compile(compiled_schema, ruby_schema, ref_data);
+    compile(compiled_schema, ruby_schema, ref_data, custom_formats);
 
     rb_ary_push(compiled_schema_collection, compiled_schema_obj);
   }

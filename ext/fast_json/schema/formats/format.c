@@ -16,14 +16,13 @@
 #include "regex.h"
 #include "json_pointer.h"
 #include "relative_json_pointer.h"
+#include "custom_format.h"
 
-void no_op_format_validate(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
+static void no_op_format_validate(VALUE schema, CompiledSchema *compiled_schema, VALUE data, Context *context) {
   return;
 }
 
-format_validation_function format_validation_function_for(VALUE format_val) {
-  if(!RB_TYPE_P(format_val, T_STRING)) return no_op_format_validate;
-
+static format_validation_function built_in_format_validation_function_for(VALUE format_val) {
   const char *format_str = StringValueCStr(format_val);
 
   if(strcmp(format_str, "date") == 0)                  return validate_format_date;
@@ -45,4 +44,25 @@ format_validation_function format_validation_function_for(VALUE format_val) {
   if(strcmp(format_str, "relative-json-pointer") == 0) return validate_format_relative_json_pointer;
 
   return no_op_format_validate;
+}
+
+static bool set_built_in_format_validation_function_for_compiled_schema(CompiledSchema *compiled_schema, VALUE format_val) {
+  compiled_schema->format_validation_function = built_in_format_validation_function_for(format_val);
+
+  return true;
+}
+
+static void set_no_op_format_validation_function_for_compiled_schema(CompiledSchema *compiled_schema) {
+  compiled_schema->format_validation_function = no_op_format_validate;
+}
+
+void set_format_validation_function_for_compiled_schema(CompiledSchema *compiled_schema, VALUE format_val, VALUE custom_formats) {
+  if(!RB_TYPE_P(format_val, T_STRING)) {
+    set_no_op_format_validation_function_for_compiled_schema(compiled_schema);
+
+    return;
+  }
+
+  set_custom_format_validation_function_for_compiled_schema(compiled_schema, format_val, custom_formats) || 
+    set_built_in_format_validation_function_for_compiled_schema(compiled_schema, format_val);
 }

@@ -71,7 +71,7 @@ This gem is under development at the moment and I am planning to support only th
     - `dependencies` &check;
 - **Formats**
     - Enabling/disabling the `format` as assertion &cross;
-    - `Custom format attributes` &cross;
+    - `Custom format attributes` &check;
     - Dates, Times, and Duration
         - `date-time` &check;
         - `date` &check;

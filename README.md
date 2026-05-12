@@ -94,8 +94,8 @@ This gem is under development at the moment and I am planning to support only th
         - `uuid` &cross; (Draft 8)
     - `uri-template` &check;
     - JSON Pointers
-        - `json-pointer` &cross;
-        - `relative-json-pointer` &cross;
+        - `json-pointer` &check;
+        - `relative-json-pointer` &check;
     - `regex` &check;
         > Compiled with Ruby's `Regexp.new` (Onigmo engine). This matches `json_schemer` / `json-schema` behavior but differs slightly from strict ECMA-262 — Onigmo accepts some constructs ECMA rejects (possessive quantifiers, atomic groups, `\A` / `\z` / `\Z` anchors) and vice versa. For strict ECMA-262 conformance, pre-process patterns with a translation library before validation.
 - **Vocabulary for the Contents of String-Encoded Data**

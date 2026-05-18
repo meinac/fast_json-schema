@@ -57,6 +57,14 @@ VALUE properties_str,
 
 VALUE object_str;
 
+VALUE known_keywords_hash;
+
+bool is_known_keyword(VALUE key) {
+  if(!RB_TYPE_P(key, T_STRING)) return false;
+
+  return rb_hash_lookup(known_keywords_hash, key) != Qnil;
+}
+
 void Init_keywords() {
   root_path_str = rb_str_new_literal("#");
 
@@ -110,6 +118,52 @@ void Init_keywords() {
   dependencies_str = rb_str_new_literal("dependencies");
 
   object_str = rb_str_new_literal("object");
+
+  known_keywords_hash = rb_hash_new();
+  rb_hash_aset(known_keywords_hash, id_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, ref_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, recursiveAnchor_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, recursiveRef_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, type_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, const_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, enum_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, if_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, then_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, else_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, allOf_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, anyOf_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, oneOf_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, not_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, multipleOf_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, maximum_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, exclusiveMaximum_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, minimum_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, exclusiveMinimum_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, maxLength_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, minLength_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, pattern_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, format_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, items_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, additionalItems_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, unevaluatedItems_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, contains_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, maxItems_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, minItems_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, uniqueItems_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, maxContains_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, minContains_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, properties_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, patternProperties_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, additionalProperties_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, unevaluatedProperties_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, propertyNames_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, maxProperties_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, minProperties_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, required_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, dependentRequired_str, Qtrue);
+  rb_hash_aset(known_keywords_hash, dependencies_str, Qtrue);
+
+  rb_gc_register_address(&known_keywords_hash);
 
   rb_gc_register_address(&root_path_str);
 

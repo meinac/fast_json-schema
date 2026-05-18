@@ -53,4 +53,8 @@ extern VALUE properties_str,
 
 extern VALUE object_str;
 
+extern VALUE known_keywords_hash;
+
+bool is_known_keyword(VALUE);
+
 void Init_keywords();

@@ -88,6 +88,9 @@ typedef struct compiled_schema_struct {
   VALUE minProperties_val;
   VALUE required_val;
   VALUE dependencies_val;
+
+  CompiledSchema **nested_schemas;
+  size_t nested_schemas_count;
 } CompiledSchema;
 
 #endif

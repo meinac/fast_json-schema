@@ -7,6 +7,7 @@
 #include "schema_collection.h"
 #include "ref.h"
 #include "ref_resolver.h"
+#include "nested_schemas.h"
 #include "formats/format.h"
 
 #define ASSIGN_ANY_VALUE_TO_COMPILED_SCHEMA(keyword)                           \
@@ -160,6 +161,9 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
 
   MARK_CHILD_SCHEMA(propertyNames);
   MARK_CHILD_SCHEMA(additionalProperties);
+
+  for(size_t i = 0; i < compiled_schema->nested_schemas_count; i++)
+    mark_compiled_schema(compiled_schema->nested_schemas[i]);
 }
 
 static void rb_mark_compiled_schema(void *ptr) {
@@ -171,6 +175,12 @@ static void rb_mark_compiled_schema(void *ptr) {
 }
 
 static void free_compiled_schema(CompiledSchema *compiled_schema) {
+  for(size_t i = 0; i < compiled_schema->nested_schemas_count; i++)
+    free_compiled_schema(compiled_schema->nested_schemas[i]);
+
+  if(compiled_schema->nested_schemas != NULL)
+    xfree(compiled_schema->nested_schemas);
+
   FREE_CHILD_SCHEMA(if);
   FREE_CHILD_SCHEMA(then);
   FREE_CHILD_SCHEMA(else);
@@ -260,6 +270,9 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
 
   COMPACT_CHILD_SCHEMA(propertyNames);
   COMPACT_CHILD_SCHEMA(additionalProperties);
+
+  for(size_t i = 0; i < compiled_schema->nested_schemas_count; i++)
+    compact_compiled_schema(compiled_schema->nested_schemas[i]);
 }
 
 static void rb_compact_compiled_schema(void *ptr) {
@@ -348,6 +361,9 @@ CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
   compiled_schema->required_val = Qundef;
   compiled_schema->dependencies_val = Qundef;
 
+  compiled_schema->nested_schemas = NULL;
+  compiled_schema->nested_schemas_count = 0;
+
   return compiled_schema;
 }
 
@@ -402,12 +418,6 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data,
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(recursiveAnchor, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(recursiveRef, T_STRING);
 
-  if(compiled_schema->ref_val != Qundef) {
-    compiled_schema->validation_function = validate_ref;
-
-    return;
-  }
-
   ASSIGN_ANY_VALUE_TO_COMPILED_SCHEMA(const);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(enum, T_ARRAY);
 
@@ -450,10 +460,15 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data,
   compile_pattern_properties_val(compiled_schema, ruby_schema, ref_data, custom_formats);
   compile_dependencies_val(compiled_schema, ruby_schema, ref_data, custom_formats);
 
+  compile_nested_schemas(compiled_schema, ruby_schema, ref_data, custom_formats);
+
   VALUE format_val = rb_hash_aref(ruby_schema, format_str);
   set_format_validation_function_for_compiled_schema(compiled_schema, format_val, custom_formats);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema);
+
+  if(compiled_schema->ref_val != Qundef)
+    compiled_schema->validation_function = validate_ref;
 }
 
 void compile_schema(VALUE self) {

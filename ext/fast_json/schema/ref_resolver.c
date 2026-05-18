@@ -10,6 +10,11 @@ static int resolve_refs_in_hash(VALUE key, VALUE value, VALUE data) {
   return ST_CONTINUE;
 }
 
+static void resolve_refs_for_nested_schemas(CompiledSchema **children, size_t count, VALUE ref_data) {
+  for(size_t i = 0; i < count; i++)
+    resolve_refs(children[i], ref_data);
+}
+
 static void resolve_refs_in_array(VALUE array, VALUE ref_data) {
   long i;
 
@@ -33,8 +38,6 @@ void resolve_refs(CompiledSchema *compiled_schema, VALUE ref_data) {
       rb_raise(rb_eRuntimeError, "Unresolved $ref: %s", StringValueCStr(compiled_schema->ref_val));
 
     compiled_schema->ref_schema = (CompiledSchema *)NUM2PTR(ref_schema_ptr);
-
-    return;
   }
 
   resolve_refs(compiled_schema->if_schema, ref_data);
@@ -67,6 +70,9 @@ void resolve_refs(CompiledSchema *compiled_schema, VALUE ref_data) {
 
   if(compiled_schema->dependencies_val != Qundef)
     rb_hash_foreach(compiled_schema->dependencies_val, resolve_refs_in_hash, ref_data);
+
+  if(compiled_schema->nested_schemas != NULL)
+    resolve_refs_for_nested_schemas(compiled_schema->nested_schemas, compiled_schema->nested_schemas_count, ref_data);
 }
 
 void register_schema_for_ref_resolution(CompiledSchema *compiled_schema, VALUE ref_data) {

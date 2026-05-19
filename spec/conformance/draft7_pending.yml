@@ -1,0 +1,13 @@
+# Catalog of Draft-7 conformance tests that are known not to pass.
+#
+# Each entry:
+#   - file:     "<path under tests/draft7>"
+#     group:    "<group description string>"
+#     test:     "<test description string>"
+#     reason:   "<why it currently fails>"
+#     category: remote-ref | id-ref | format-<name> | unsupported | bug
+#
+# Matching is by the exact (file, group, test) triple.
+# An empty list means every failure is treated as a real test failure.
+
+[]

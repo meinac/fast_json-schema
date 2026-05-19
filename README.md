@@ -101,6 +101,42 @@ This gem is under development at the moment and I am planning to support only th
 - **Vocabulary for the Contents of String-Encoded Data**
     - I'm not planning to support validating string instances with these annotations in the near future.
 
+## Conformance
+
+This project is verified against the official [JSON Schema Test Suite](https://github.com/json-schema-org/JSON-Schema-Test-Suite), vendored as a git submodule at `vendor/JSON-Schema-Test-Suite`.
+
+After cloning the repository, initialize the submodule:
+
+```sh
+git submodule update --init --recursive
+```
+
+Then run the Draft-7 conformance suite (includes core + optional tests):
+
+```sh
+bundle exec rake conformance:draft7
+```
+
+For a concise pass/fail summary:
+
+```sh
+bundle exec rake conformance:draft7:stats
+```
+
+Known failing tests can be tracked in `spec/conformance/draft7_pending.yml`; tests listed there are reported as `pending` instead of failing the build. To see a category breakdown of pending entries:
+
+```sh
+bundle exec rake conformance:draft7:gaps
+```
+
+### Current pass rate
+
+<!-- conformance:start -->
+**Draft-7**: 1390 / 1584 (87.8%) — 0 pending, 194 failing.
+
+Remote-ref resolution (`refRemote.json`) is intentionally not implemented and contributes to the failing count.
+<!-- conformance:end -->
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake` to compile the extension and run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

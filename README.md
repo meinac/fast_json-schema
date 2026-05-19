@@ -22,7 +22,7 @@ This gem is under development at the moment and I am planning to support only th
 
 - **Annotations**
     - `$id` &check;
-    - `$ref` &cross;
+    - `$ref` &check;
     - `$recursiveAnchor` &cross; (Draft 8)
     - `$recursiveRef` &cross; (Draft 8)
 - **Keywords for Applying Subschemas Conditionally**

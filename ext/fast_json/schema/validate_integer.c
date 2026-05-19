@@ -14,7 +14,7 @@ void validate_integer(VALUE schema, CompiledSchema *compiled_schema, VALUE data,
     double multipleOf = NUM2DBL(compiled_schema->multipleOf_val);
     double div = data_c / multipleOf;
 
-    if(div - (int)div != 0.0) // fmod() does not work here due to IEEE floating point arithmetics
+    if(div - (long long)div != 0.0) // fmod() does not work here due to IEEE floating point arithmetics
       yield_error(compiled_schema, data, context, "multipleOf");
   }
 

@@ -18,11 +18,6 @@
   test: invalid definition schema
   reason: ''
   category: ''
-- file: not.json
-  group: not multiple types
-  test: valid
-  reason: ''
-  category: ''
 - file: patternProperties.json
   group: multiple simultaneous patternProperties are validated
   test: an invalid due to the other is invalid
@@ -361,61 +356,6 @@
 - file: type.json
   group: integer type matches integers
   test: a float with zero fractional part is an integer
-  reason: ''
-  category: ''
-- file: type.json
-  group: multiple types can be specified in an array
-  test: a float is invalid
-  reason: ''
-  category: ''
-- file: type.json
-  group: multiple types can be specified in an array
-  test: an object is invalid
-  reason: ''
-  category: ''
-- file: type.json
-  group: multiple types can be specified in an array
-  test: an array is invalid
-  reason: ''
-  category: ''
-- file: type.json
-  group: multiple types can be specified in an array
-  test: a boolean is invalid
-  reason: ''
-  category: ''
-- file: type.json
-  group: multiple types can be specified in an array
-  test: null is invalid
-  reason: ''
-  category: ''
-- file: type.json
-  group: type as array with one item
-  test: number is invalid
-  reason: ''
-  category: ''
-- file: type.json
-  group: 'type: array or object'
-  test: number is invalid
-  reason: ''
-  category: ''
-- file: type.json
-  group: 'type: array or object'
-  test: string is invalid
-  reason: ''
-  category: ''
-- file: type.json
-  group: 'type: array or object'
-  test: null is invalid
-  reason: ''
-  category: ''
-- file: type.json
-  group: 'type: array, object or null'
-  test: number is invalid
-  reason: ''
-  category: ''
-- file: type.json
-  group: 'type: array, object or null'
-  test: string is invalid
   reason: ''
   category: ''
 - file: optional/bignum.json

@@ -18,6 +18,16 @@ typedef void (*format_validation_function)(VALUE, CompiledSchema *, VALUE, Conte
 
 typedef unsigned char schema_flag_t;
 
+typedef enum {
+  TYPE_NULL    = 1 << 0,
+  TYPE_BOOL    = 1 << 1,
+  TYPE_STRING  = 1 << 2,
+  TYPE_INTEGER = 1 << 3,
+  TYPE_NUMBER  = 1 << 4,
+  TYPE_ARRAY   = 1 << 5,
+  TYPE_OBJECT  = 1 << 6
+} type_flag_t;
+
 /*
 * TODO:
 * Currently all the validation keywords are stored flat in this struct
@@ -91,6 +101,8 @@ typedef struct compiled_schema_struct {
 
   CompiledSchema **nested_schemas;
   size_t nested_schemas_count;
+
+  unsigned int type_flags;
 } CompiledSchema;
 
 #endif

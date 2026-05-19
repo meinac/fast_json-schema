@@ -57,6 +57,13 @@ VALUE properties_str,
 
 VALUE object_str;
 
+VALUE null_type_str,
+      boolean_type_str,
+      string_type_str,
+      integer_type_str,
+      number_type_str,
+      array_type_str;
+
 VALUE known_keywords_hash;
 
 bool is_known_keyword(VALUE key) {
@@ -118,6 +125,14 @@ void Init_keywords() {
   dependencies_str = rb_str_new_literal("dependencies");
 
   object_str = rb_str_new_literal("object");
+
+  null_type_str    = rb_str_new_literal("null");
+  boolean_type_str = rb_str_new_literal("boolean");
+  string_type_str  = rb_str_new_literal("string");
+  integer_type_str = rb_str_new_literal("integer");
+  number_type_str  = rb_str_new_literal("number");
+  array_type_str   = rb_str_new_literal("array");
+
 
   known_keywords_hash = rb_hash_new();
   rb_hash_aset(known_keywords_hash, id_str, Qtrue);
@@ -217,4 +232,11 @@ void Init_keywords() {
   rb_gc_register_address(&dependencies_str);
 
   rb_gc_register_address(&object_str);
+
+  rb_gc_register_address(&null_type_str);
+  rb_gc_register_address(&boolean_type_str);
+  rb_gc_register_address(&string_type_str);
+  rb_gc_register_address(&integer_type_str);
+  rb_gc_register_address(&number_type_str);
+  rb_gc_register_address(&array_type_str);
 }

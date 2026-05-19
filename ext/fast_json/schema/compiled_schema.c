@@ -364,11 +364,61 @@ CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
   compiled_schema->nested_schemas = NULL;
   compiled_schema->nested_schemas_count = 0;
 
+  compiled_schema->type_flags = 0;
+
   return compiled_schema;
 }
 
-static validation_function type_validation_function(VALUE ruby_schema) {
+static unsigned int parse_type_array(VALUE arr) {
+  if(RARRAY_LEN(arr) == 0)
+    rb_raise(rb_eRuntimeError, "Invalid 'type' array: must contain at least one element");
+
+  unsigned int flags = 0;
+  long i;
+
+  for(i = 0; i < RARRAY_LEN(arr); i++) {
+    VALUE elem = rb_ary_entry(arr, i);
+
+    if(!RB_TYPE_P(elem, T_STRING))
+      rb_raise(rb_eRuntimeError, "Invalid 'type' array: elements must be strings");
+
+    unsigned int flag = 0;
+
+    if(rb_str_equal(elem, null_type_str) == Qtrue) {
+      flag = TYPE_NULL;
+    } else if(rb_str_equal(elem, boolean_type_str) == Qtrue) {
+      flag = TYPE_BOOL;
+    } else if(rb_str_equal(elem, string_type_str) == Qtrue) {
+      flag = TYPE_STRING;
+    } else if(rb_str_equal(elem, integer_type_str) == Qtrue) {
+      flag = TYPE_INTEGER;
+    } else if(rb_str_equal(elem, number_type_str) == Qtrue) {
+      flag = TYPE_NUMBER;
+    } else if(rb_str_equal(elem, array_type_str) == Qtrue) {
+      flag = TYPE_ARRAY;
+    } else if(rb_str_equal(elem, object_str) == Qtrue) {
+      flag = TYPE_OBJECT;
+    } else {
+      rb_raise(rb_eRuntimeError, "Invalid 'type' array: unknown type %s", StringValueCStr(elem));
+    }
+
+    if(flags & flag)
+      rb_raise(rb_eRuntimeError, "Invalid 'type' array: duplicate type %s", StringValueCStr(elem));
+
+    flags |= flag;
+  }
+
+  return flags;
+}
+
+static validation_function type_validation_function(VALUE ruby_schema, CompiledSchema *compiled_schema) {
   VALUE type_val = rb_hash_aref(ruby_schema, type_str);
+
+  if(RB_TYPE_P(type_val, T_ARRAY)) {
+    compiled_schema->type_flags = parse_type_array(type_val);
+
+    return validate_by_type_list;
+  }
 
   if(!RB_TYPE_P(type_val, T_STRING)) return validate_by_data_type;
 
@@ -465,7 +515,7 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data,
   VALUE format_val = rb_hash_aref(ruby_schema, format_str);
   set_format_validation_function_for_compiled_schema(compiled_schema, format_val, custom_formats);
 
-  compiled_schema->type_validation_function = type_validation_function(ruby_schema);
+  compiled_schema->type_validation_function = type_validation_function(ruby_schema, compiled_schema);
 
   if(compiled_schema->ref_val != Qundef)
     compiled_schema->validation_function = validate_ref;

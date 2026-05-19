@@ -53,6 +53,13 @@ extern VALUE properties_str,
 
 extern VALUE object_str;
 
+extern VALUE null_type_str,
+             boolean_type_str,
+             string_type_str,
+             integer_type_str,
+             number_type_str,
+             array_type_str;
+
 extern VALUE known_keywords_hash;
 
 bool is_known_keyword(VALUE);

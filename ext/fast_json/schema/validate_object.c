@@ -36,7 +36,7 @@ static int validate_property_by_pattern(VALUE regexp, VALUE compiled_schema_obj,
 
   memo->validated = true;
 
-  return ST_STOP;
+  return ST_CONTINUE;
 }
 
 static void validate_by_pattern_properties_keyword(struct properties_memo_S *memo, VALUE key, VALUE value) {

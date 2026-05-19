@@ -9,16 +9,18 @@ RSpec.describe "FastJSON::Schema Object" do
       using RSpec::Parameterized::TableSyntax
 
       where(:data, :pattern_properties, :valid?) do
-        { "foo" => 1 }  | {}                                   | true
-        { "foo" => 1 }  | { "bar" => false }                   | true
-        { "foo" => 1 }  | { "foo" => true }                    | true
-        { "foo" => 1 }  | { "foo" => {} }                      | true
-        { "foo" => 1 }  | { "fo" => {} }                       | true
-        { "foo" => 1 }  | { "foo" => { "type" => "integer" } } | true
-        { "foo" => 1 }  | { "foo" => false }                   | false
-        { "foo" => 1 }  | { "fo" => false }                    | false
-        { "foo" => 1 }  | { "foo" => { "type" => "string" } }  | false
-        { "foo" => 1 }  | { "fo" => { "type" => "string" } }   | false
+        { "foo" => 1 }  | {}                                                                | true
+        { "foo" => 1 }  | { "bar" => false }                                                | true
+        { "foo" => 1 }  | { "foo" => true }                                                 | true
+        { "foo" => 1 }  | { "foo" => {} }                                                   | true
+        { "foo" => 1 }  | { "fo" => {} }                                                    | true
+        { "foo" => 1 }  | { "foo" => { "type" => "integer" } }                              | true
+        { "foo" => 1 }  | { "f*" => { "type" => "integer" }, "fo*" => { "maximum" => 20 } } | true
+        { "foo" => 1 }  | { "foo" => false }                                                | false
+        { "foo" => 1 }  | { "fo" => false }                                                 | false
+        { "foo" => 1 }  | { "foo" => { "type" => "string" } }                               | false
+        { "foo" => 1 }  | { "fo" => { "type" => "string" } }                                | false
+        { "foo" => 31 } | { "f*" => { "type" => "integer" }, "fo*" => { "maximum" => 20 } } | false
       end
 
       with_them do

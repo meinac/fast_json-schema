@@ -14,7 +14,33 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+require "fast_json/schema"
+
+schema = FastJSON::Schema.create(
+  "type" => "object",
+  "required" => ["name"],
+  "properties" => {
+    "name" => {
+      "type" => "string",
+      "minLength" => 1
+    },
+    "age"  => {
+      "type" => "integer",
+      "minimum" => 0
+    }
+  }
+)
+
+schema.valid?("name" => "alice", "age" => 30) # => true
+schema.valid?("name" => "")                   # => false (minLength)
+schema.valid?("age"  => 30)                   # => false (required: name)
+
+# Collect validation errors
+schema.validate do |error|
+  puts error
+end
+```
 
 ## Roadmap
 

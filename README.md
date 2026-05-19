@@ -137,6 +137,110 @@ bundle exec rake conformance:draft7:gaps
 Remote-ref resolution (`refRemote.json`) is intentionally not implemented and contributes to the failing count.
 <!-- conformance:end -->
 
+## Benchmarks
+
+> **`fast_json-schema` is currently ~20x faster than `json_schemer`** on the
+> bundled fixtures. See the numbers below for the exact breakdown.
+
+`fast_json-schema` is a JSON Schema validator implemented as a Ruby C extension, and one of its core goals is to be meaningfully faster than the pure-Ruby alternatives for the Draft-7 keywords it supports.
+
+The repository ships a benchmark script that compares against [`json_schemer`](https://github.com/davishmcclurg/json_schemer) on representative fixtures under [`data/`](data/) — a schema, a valid instance, and an instance with a single validation error.
+
+To reproduce locally:
+
+```sh
+bin/benchmark
+```
+
+The script:
+
+1. Boots both validators against the same compiled schema.
+2. Confirms that both validators agree on the validity of each fixture before benchmarking (so we are comparing apples to apples).
+3. Runs [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) to measure sustained validation throughput for both the valid and invalid payloads.
+4. Runs [`memory_profiler`](https://github.com/SamSaffron/memory_profiler) over **1_000** iterations of each scenario to capture allocation pressure.
+
+Absolute throughput depends on the host's CPU, Ruby version, and JIT configuration. The ratio between the two validators is the meaningful figure; treat the absolute numbers as a snapshot, not a contract.
+
+### Environment
+
+- **Hardware**: Apple M4 Max
+- **OS**: macOS Tahoe 26.3.1
+- **Ruby**: 3.3.10 (arm64-darwin24)
+- **`fast_json-schema`**: 0.1.0
+- **`json_schemer`**: 2.4.0
+- **Date**: 2026-05-19
+
+### Validation throughput (`benchmark-ips`)
+
+#### `valid?` on a valid payload
+
+```
+=== IPS: valid?(VALID) ===
+ruby 3.3.10 (2025-10-23 revision 343ea05002) [arm64-darwin24]
+Warming up --------------------------------------
+    fast_json-schema     5.379k i/100ms
+        json_schemer   258.000 i/100ms
+Calculating -------------------------------------
+    fast_json-schema     53.136k (± 2.1%) i/s   (18.82 μs/i) -    268.950k in   5.063959s
+        json_schemer      2.555k (± 1.7%) i/s  (391.32 μs/i) -     12.900k in   5.049376s
+
+Comparison:
+    fast_json-schema:    53135.8 i/s
+        json_schemer:     2555.5 i/s - 20.79x  slower
+```
+
+#### `valid?` on an invalid payload
+
+```
+=== IPS: valid?(INVALID) ===
+ruby 3.3.10 (2025-10-23 revision 343ea05002) [arm64-darwin24]
+Warming up --------------------------------------
+    fast_json-schema    23.353k i/100ms
+        json_schemer     8.887k i/100ms
+Calculating -------------------------------------
+    fast_json-schema    265.001k (±11.4%) i/s    (3.77 μs/i) -      1.308M in   5.008035s
+        json_schemer     88.905k (± 1.5%) i/s   (11.25 μs/i) -    453.237k in   5.099150s
+
+Comparison:
+    fast_json-schema:   265001.2 i/s
+        json_schemer:    88904.7 i/s - 2.98x  slower
+```
+
+### Memory (`memory_profiler`, 1 000 iterations of `valid?`)
+
+#### Valid payload
+
+```
+=== Memory: valid?(VALID) x 1000 ===
+
+--- fast_json-schema ---
+Total allocated: 18.97 MB (58000 objects)
+Total retained:  831.00 B (3 objects)
+
+--- json_schemer ---
+Total allocated: 138.62 MB (1535000 objects)
+Total retained:  0 B (0 objects)
+```
+
+#### Invalid payload
+
+```
+=== Memory: valid?(INVALID) x 1000 ===
+
+--- fast_json-schema ---
+Total allocated: 9.10 MB (4000 objects)
+Total retained:  0 B (0 objects)
+
+--- json_schemer ---
+Total allocated: 6.87 MB (72000 objects)
+Total retained:  0 B (0 objects)
+```
+
+### Notes
+
+- The benchmark script pins `json_schemer` via an inline `bundler/inline` gemfile, so reproductions don't perturb the project's primary `Gemfile.lock`.
+- Both libraries are configured with the same schema and feed; the numbers reflect end-to-end `valid?` calls (no compilation in the hot loop — the schema is compiled once outside the measurement block).
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake` to compile the extension and run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

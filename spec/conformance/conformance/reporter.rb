@@ -40,29 +40,47 @@ module Conformance
     def self.formatted_gaps
       entries = Conformance.pending_entries_raw
 
-      return "No pending Draft-7 conformance entries." if entries.size.zero?
+      return "No pending Draft-7 conformance entries." if entries.empty?
 
       lines = ["Draft-7 conformance pending (#{entries.size} total):"]
 
-      sorted = entries.group_by { |e| e["category"] || "uncategorized" }
-                      .sort_by { |category, entries| [-entries.size, category.to_s] }
+      core, optional = entries.partition { |e| !e["optional"] }
 
-      sorted.each do |category, entries|
-        lines << "  #{category}: #{entries.size}"
+      lines << format_bucket("core",     core)
+      lines << format_bucket("optional", optional)
+      lines << ""
+      lines << "By category:"
 
-        example_reasons = entries.map { |e| e["reason"] }.compact.uniq.first(3)
-        example_reasons.each { |reason| lines << "    - #{reason}" }
+      by_category = entries.group_by { |e| e["category"].to_s.empty? ? "uncategorized" : e["category"] }
+                           .sort_by { |category, es| [-es.size, category] }
+
+      by_category.each do |category, es|
+        ignored  = es.count { |e| e["ignored"] }
+        optional = es.count { |e| e["optional"] }
+
+        lines << "  #{category.ljust(20)} #{es.size.to_s.rjust(3)}  (ignored: #{ignored}, optional: #{optional})"
       end
 
       lines.join("\n")
     end
 
+    def self.format_bucket(label, entries)
+      ignored = entries.count { |e| e["ignored"] }
+      open    = entries.size - ignored
+
+      "  #{label.ljust(9)} #{entries.size.to_s.rjust(3)}  (ignored: #{ignored}, open: #{open})"
+    end
+
     def self.format_stats(summary)
+      pending_raw   = Conformance.pending_entries_raw
+      ignored_count = pending_raw.count { |e| e["ignored"] }
+      open_count    = pending_raw.size - ignored_count
+
       lines = [
         "Draft-7 conformance:",
         "  total:    #{summary[:total]}",
         "  passed:   #{summary[:passed]}",
-        "  pending:  #{summary[:pending]}",
+        "  pending:  #{summary[:pending]} (#{ignored_count} intentionally ignored, #{open_count} open)",
         "  failed:   #{summary[:failed]}"
       ]
 
@@ -75,11 +93,15 @@ module Conformance
     def self.update_readme!(readme_path, summary)
       content = File.read(readme_path)
 
+      pending_raw   = Conformance.pending_entries_raw
+      ignored_count = pending_raw.count { |e| e["ignored"] }
+      open_count    = pending_raw.size - ignored_count
+
       pct = (summary[:passed].to_f / summary[:total].to_f * 100).round(1)
 
       block = <<~MD.chomp
         #{README_START_MARKER}
-        **Draft-7**: #{summary[:passed]} / #{summary[:total]} (#{pct}%) — #{summary[:pending]} pending, #{summary[:failed]} failing.
+        **Draft-7**: #{summary[:passed]} / #{summary[:total]} (#{pct}%) — #{summary[:pending]} pending (#{ignored_count} intentionally ignored, #{open_count} open), #{summary[:failed]} failing.
 
         Remote-ref resolution (`refRemote.json`) is intentionally not implemented and contributes to the failing count.
         #{README_END_MARKER}

@@ -34,13 +34,20 @@ module Conformance
   end
 
   def self.pending_entries_raw
-    @pending_entries_raw ||= begin
-      if File.exist?(PENDING_FILE)
-        YAML.safe_load(File.read(PENDING_FILE)) || []
-      else
-        []
-      end
-    end
+    @pending_entries_raw ||= raw_pending_entries.map { |entry| enrich_entry(entry) }
+  end
+
+  def self.raw_pending_entries
+    return [] unless File.exist?(PENDING_FILE)
+
+    YAML.safe_load(File.read(PENDING_FILE)) || []
+  end
+
+  def self.enrich_entry(entry)
+    entry.merge(
+      "optional" => entry.fetch("optional") { entry["file"].to_s.start_with?("optional/") },
+      "ignored"  => entry.fetch("ignored", false)
+    )
   end
 
   def self.pending_entries

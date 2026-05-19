@@ -243,116 +243,139 @@
   test: remote ref valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: remote ref
   test: remote ref invalid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: fragment within remote ref
   test: remote fragment valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: fragment within remote ref
   test: remote fragment invalid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: ref within remote ref
   test: ref within ref valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: ref within remote ref
   test: ref within ref invalid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: base URI change
   test: base URI change ref valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: base URI change
   test: base URI change ref invalid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: base URI change - change folder
   test: number is valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: base URI change - change folder
   test: string is invalid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: base URI change - change folder in subschema
   test: number is valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: base URI change - change folder in subschema
   test: string is invalid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: root ref in remote ref
   test: string is valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: root ref in remote ref
   test: null is valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: root ref in remote ref
   test: object is invalid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: remote ref with ref to definitions
   test: invalid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: remote ref with ref to definitions
   test: valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: Location-independent identifier in remote ref
   test: integer is valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: Location-independent identifier in remote ref
   test: string is invalid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: retrieved nested refs resolve relative to their URI not $id
   test: number is invalid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: retrieved nested refs resolve relative to their URI not $id
   test: string is valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: "$ref to $ref finds location-independent $id"
   test: number is valid
   reason: ''
   category: ''
+  ignored: true
 - file: refRemote.json
   group: "$ref to $ref finds location-independent $id"
   test: non-number is invalid
   reason: ''
   category: ''
+  ignored: true
 - file: type.json
   group: integer type matches integers
   test: a float with zero fractional part is an integer

@@ -42,7 +42,7 @@ module Conformance
 
       return "No pending Draft-7 conformance entries." if entries.size.zero?
 
-      lines = ["Draft-7 conformance pending (#{gaps[:total]} total):"]
+      lines = ["Draft-7 conformance pending (#{entries.size} total):"]
 
       sorted = entries.group_by { |e| e["category"] || "uncategorized" }
                       .sort_by { |category, entries| [-entries.size, category.to_s] }

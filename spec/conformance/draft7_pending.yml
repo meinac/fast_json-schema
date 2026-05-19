@@ -18,19 +18,9 @@
   test: invalid definition schema
   reason: ''
   category: ''
-- file: maxLength.json
-  group: maxLength validation
-  test: two graphemes is long enough
-  reason: ''
-  category: ''
 - file: maxProperties.json
   group: maxProperties validation with a decimal
   test: too long is invalid
-  reason: ''
-  category: ''
-- file: minLength.json
-  group: minLength validation
-  test: one grapheme is not long enough
   reason: ''
   category: ''
 - file: minProperties.json

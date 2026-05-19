@@ -1,6 +1,6 @@
 # FastJson::Schema
 
-Validates JSON instances against given JSON schema.
+The fastest JSON Schema validator for Ruby, implemented as a native C extension. Verified against the official Draft-7 test suite. See [Conformance](#conformance) and [Benchmarks](#benchmarks) for details.
 
 ## Installation
 

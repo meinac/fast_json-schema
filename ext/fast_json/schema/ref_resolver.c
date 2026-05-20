@@ -1,5 +1,6 @@
 #include "ref_resolver.h"
 #include "value_pointer_caster.h"
+#include "ref_decoder.h"
 
 static int resolve_refs_in_hash(VALUE key, VALUE value, VALUE data) {
   CompiledSchema *child;
@@ -32,12 +33,15 @@ void resolve_refs(CompiledSchema *compiled_schema, VALUE ref_data) {
   if(compiled_schema == NULL) return;
 
   if(compiled_schema->ref_val != Qundef) {
-    VALUE ref_schema_ptr = rb_hash_lookup(ref_data, compiled_schema->ref_val);
+    VALUE decoded_ref = decode_ref(compiled_schema->ref_val);
+    VALUE ref_schema_ptr = rb_hash_lookup(ref_data, decoded_ref);
 
     if(NIL_P(ref_schema_ptr))
       rb_raise(rb_eRuntimeError, "Unresolved $ref: %s", StringValueCStr(compiled_schema->ref_val));
 
     compiled_schema->ref_schema = (CompiledSchema *)NUM2PTR(ref_schema_ptr);
+
+    RB_GC_GUARD(decoded_ref);
   }
 
   resolve_refs(compiled_schema->if_schema, ref_data);

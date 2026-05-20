@@ -158,7 +158,7 @@ bundle exec rake conformance:draft7:gaps
 ### Current pass rate
 
 <!-- conformance:start -->
-**Draft-7**: 1413 / 1584 (89.2%) — 171 pending (23 intentionally ignored, 148 open), 0 failing.
+**Draft-7**: 1421 / 1584 (89.7%) — 163 pending (23 intentionally ignored, 140 open), 0 failing.
 
 Remote-ref resolution (`refRemote.json`) is intentionally not implemented and contributes to the failing count.
 <!-- conformance:end -->

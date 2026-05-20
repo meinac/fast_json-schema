@@ -19,36 +19,6 @@
   reason: ''
   category: ''
 - file: ref.json
-  group: escaped pointer ref
-  test: slash invalid
-  reason: ''
-  category: ''
-- file: ref.json
-  group: escaped pointer ref
-  test: tilde invalid
-  reason: ''
-  category: ''
-- file: ref.json
-  group: escaped pointer ref
-  test: percent invalid
-  reason: ''
-  category: ''
-- file: ref.json
-  group: escaped pointer ref
-  test: slash valid
-  reason: ''
-  category: ''
-- file: ref.json
-  group: escaped pointer ref
-  test: tilde valid
-  reason: ''
-  category: ''
-- file: ref.json
-  group: escaped pointer ref
-  test: percent valid
-  reason: ''
-  category: ''
-- file: ref.json
   group: "$ref prevents a sibling $id from changing the base uri"
   test: "$ref resolves to /definitions/base_foo, data does not validate"
   reason: ''
@@ -76,16 +46,6 @@
 - file: ref.json
   group: Recursive references between schemas
   test: invalid tree
-  reason: ''
-  category: ''
-- file: ref.json
-  group: refs with quote
-  test: object with numbers is valid
-  reason: ''
-  category: ''
-- file: ref.json
-  group: refs with quote
-  test: object with strings is invalid
   reason: ''
   category: ''
 - file: ref.json

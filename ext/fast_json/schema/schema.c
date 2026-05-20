@@ -4,6 +4,7 @@
 #include "types/context.h"
 #include "error.h"
 #include "is_valid.h"
+#include "ref_decoder.h"
 
 extern bool is_valid(VALUE, CompiledSchema *, VALUE, Context *);
 
@@ -61,6 +62,7 @@ void Init_schema() {
   Init_compiled_schema(schema_class);
   Init_context();
   Init_is_valid();
+  Init_ref_decoder();
 
   rb_define_method(schema_class, "compile", rb_compile, 0);
   rb_define_method(schema_class, "validate", rb_validate, 1);

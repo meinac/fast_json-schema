@@ -231,5 +231,51 @@ RSpec.describe FastJSON::Schema do
         expect { schema }.to raise_error(RuntimeError, /Unresolved \$ref/)
       end
     end
+
+    describe "$ref with JSON Pointer escape sequences and percent-encoded characters" do
+      let(:ruby_schema) do
+        {
+          "definitions" => {
+            "tilde~field"   => { "type" => "integer" },
+            "slash/field"   => { "type" => "integer" },
+            "percent%field" => { "type" => "integer" },
+            "~0"            => { "type" => "integer" }
+          },
+          "properties" => {
+            "tilde"        => { "$ref" => "#/definitions/tilde~0field" },
+            "slash"        => { "$ref" => "#/definitions/slash~1field" },
+            "percent"      => { "$ref" => "#/definitions/percent%25field" },
+            "literal_til0" => { "$ref" => "#/definitions/~00" }
+          }
+        }
+      end
+
+      describe "valid?" do
+        where(:data, :valid?) do
+          { "tilde"        => 1 }     | true
+          { "slash"        => 1 }     | true
+          { "percent"      => 1 }     | true
+          { "literal_til0" => 1 }     | true
+          { "tilde"        => "foo" } | false
+          { "slash"        => "foo" } | false
+          { "percent"      => "foo" } | false
+          { "literal_til0" => "foo" } | false
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "unresolved escaped $ref" do
+        let(:ruby_schema) do
+          { "$ref" => "#/definitions/missing~0name" }
+        end
+
+        it "raises RuntimeError with the raw (un-decoded) $ref in the message" do
+          expect { schema }.to raise_error(RuntimeError, %r{Unresolved \$ref: \#/definitions/missing~0name})
+        end
+      end
+    end
   end
 end

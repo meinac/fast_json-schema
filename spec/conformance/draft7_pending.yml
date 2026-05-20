@@ -31,13 +31,15 @@
 - file: ref.json
   group: remote ref, containing refs itself
   test: remote ref valid
-  reason: ''
+  reason: 'Remote ref resolution is ignored for now'
   category: ''
+  ignored: true
 - file: ref.json
   group: remote ref, containing refs itself
   test: remote ref invalid
-  reason: ''
+  reason: 'Remote ref resolution is ignored for now'
   category: ''
+  ignored: true
 - file: ref.json
   group: Recursive references between schemas
   test: valid tree

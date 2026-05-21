@@ -33,11 +33,14 @@ static int compile_property(VALUE key, VALUE value, VALUE data) {
   VALUE path = new_path(memo->keyword, key);
 
   CompiledSchema *compiled_schema = create_compiled_schema(memo->parent, path, EXPOSE_TO_RUBY);
+  VALUE protected_path = compiled_schema->path;
   VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
   compile(compiled_schema, value, memo->ref_data, memo->custom_formats);
 
   rb_hash_aset(memo->properties_hash, memo->key_transform_function(key), compiled_schema_obj);
+
+  RB_GC_GUARD(protected_path);
 
   return ST_CONTINUE;
 }

@@ -18,11 +18,12 @@ void compile_schema_collection(CompiledSchema *parent, VALUE *schema_member, VAL
     VALUE path = append_long_to_path(keyword, i);
 
     CompiledSchema *compiled_schema = create_compiled_schema(parent, path, EXPOSE_TO_RUBY);
+    VALUE protected_path = compiled_schema->path;
     VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
     compile(compiled_schema, ruby_schema, ref_data, custom_formats);
-
     rb_ary_push(compiled_schema_collection, compiled_schema_obj);
+    RB_GC_GUARD(protected_path);
   }
 
   *schema_member = compiled_schema_collection;

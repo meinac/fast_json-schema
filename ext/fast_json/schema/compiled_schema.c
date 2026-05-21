@@ -45,30 +45,28 @@
       compiled_schema->keyword##_val = keyword##_val;                            \
   } while(0);
 
-#define ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(keyword)                                 \
-  do {                                                                            \
-    VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);              \
-                                                                                  \
-    if(RB_TYPE_P(keyword##_val, T_HASH) ||                                        \
-       RB_TYPE_P(keyword##_val, T_FALSE) ||                                       \
-       RB_TYPE_P(keyword##_val, T_TRUE))                                          \
-    {                                                                             \
-      VALUE child_path = new_path(compiled_schema->path, keyword##_str);          \
-      CompiledSchema *child_schema = create_compiled_schema(child_path, NO_FLAG); \
-      compiled_schema->keyword##_schema = child_schema;                           \
-                                                                                  \
-      compile(child_schema, keyword##_val, ref_data, custom_formats);             \
-    }                                                                             \
+#define ASSIGN_SCHEMA_TO_COMPILED_SCHEMA(keyword)                                                     \
+  do {                                                                                                \
+    VALUE keyword##_val  = rb_hash_aref(ruby_schema, keyword##_str);                                  \
+                                                                                                      \
+    if(RB_TYPE_P(keyword##_val, T_HASH) ||                                                            \
+       RB_TYPE_P(keyword##_val, T_FALSE) ||                                                           \
+       RB_TYPE_P(keyword##_val, T_TRUE))                                                              \
+    {                                                                                                 \
+      CompiledSchema *child_schema = create_compiled_schema(compiled_schema, keyword##_str, NO_FLAG); \
+      compiled_schema->keyword##_schema = child_schema;                                               \
+                                                                                                      \
+      compile(child_schema, keyword##_val, ref_data, custom_formats);                                 \
+    }                                                                                                 \
   } while(0);
 
-#define ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(keyword)                                                             \
-  do {                                                                                                                   \
-    VALUE keyword##_val = rb_hash_lookup2(ruby_schema, keyword##_str, Qundef);                                           \
-                                                                                                                         \
-    if(RB_TYPE_P(keyword##_val, T_ARRAY)) {                                                                              \
-      VALUE child_path = new_path(compiled_schema->path, keyword##_str);                                                 \
-      compile_schema_collection(&(compiled_schema->keyword##_val), keyword##_val, ref_data, child_path, custom_formats); \
-    }                                                                                                                    \
+#define ASSIGN_SCHEMA_COLLECTION_TO_COMPILED_SCHEMA(keyword)                                                                                 \
+  do {                                                                                                                                       \
+    VALUE keyword##_val = rb_hash_lookup2(ruby_schema, keyword##_str, Qundef);                                                               \
+                                                                                                                                             \
+    if(RB_TYPE_P(keyword##_val, T_ARRAY)) {                                                                                                  \
+      compile_schema_collection(compiled_schema, &(compiled_schema->keyword##_val), keyword##_val, keyword##_str, ref_data, custom_formats); \
+    }                                                                                                                                        \
   } while(0);
 
 #define COMPACT_VALUE(keyword)                                                         \
@@ -303,12 +301,16 @@ static VALUE alloc_compiled_schema(VALUE klass) {
   return object;
 }
 
-CompiledSchema *create_compiled_schema(VALUE path, schema_flag_t flags) {
+CompiledSchema *create_compiled_schema(CompiledSchema *parent, VALUE path, schema_flag_t flags) {
   CompiledSchema *compiled_schema = ALLOC(CompiledSchema);
 
   compiled_schema->flags = flags;
 
-  compiled_schema->path = path;
+  if(parent == NULL) {
+    compiled_schema->path = path;
+  } else {
+    compiled_schema->path = new_path(parent->path, path);
+  }
 
   compiled_schema->id_val = Qundef;
   compiled_schema->ref_val = Qundef;
@@ -532,7 +534,7 @@ void compile_schema(VALUE self) {
   * while compiling the schema.
   */
   schema_flag_t flags = ROOT_SCHEMA | EXPOSE_TO_RUBY;
-  CompiledSchema *compiled_schema = create_compiled_schema(root_path_str, flags);
+  CompiledSchema *compiled_schema = create_compiled_schema(NULL, root_path_str, flags);
   VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
   VALUE custom_formats = rb_ivar_get(self, rb_intern("@custom_formats"));

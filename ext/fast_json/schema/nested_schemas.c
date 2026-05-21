@@ -1,8 +1,7 @@
 #include "nested_schemas.h"
 #include "keywords.h"
-#include "path.h"
 
-extern CompiledSchema *create_compiled_schema(VALUE, schema_flag_t);
+extern CompiledSchema *create_compiled_schema(CompiledSchema *, VALUE, schema_flag_t);
 extern void compile(CompiledSchema *, VALUE, VALUE, VALUE);
 
 static bool is_schema_shaped(VALUE value) {
@@ -35,9 +34,7 @@ static int compile_nested(VALUE key, VALUE value, VALUE data) {
 
   struct compile_memo_S *memo = (struct compile_memo_S *)data;
 
-  VALUE child_path = new_path(memo->root_schema->path, key);
-
-  CompiledSchema *child = create_compiled_schema(child_path, NO_FLAG);
+  CompiledSchema *child = create_compiled_schema(memo->root_schema, key, NO_FLAG);
 
   /*
   * Append the child pointer to the parent's nested_schemas array and bump the

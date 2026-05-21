@@ -3,15 +3,16 @@
 #include "path.h"
 #include "compiled_schema.h"
 
-extern CompiledSchema *create_compiled_schema(VALUE, schema_flag_t);
+extern CompiledSchema *create_compiled_schema(CompiledSchema *, VALUE, schema_flag_t);
 extern void compile(CompiledSchema *, VALUE, VALUE, VALUE);
 
 typedef VALUE (*key_transform_function)(VALUE);
 
 struct memo_S {
+  CompiledSchema *parent;
   VALUE properties_hash;
   VALUE ref_data;
-  VALUE path;
+  VALUE keyword;
   VALUE custom_formats;
   key_transform_function key_transform_function;
 };
@@ -29,9 +30,9 @@ static int compile_property(VALUE key, VALUE value, VALUE data) {
 
   struct memo_S *memo = (struct memo_S*)(data);
 
-  VALUE path = new_path(memo->path, key);
+  VALUE path = new_path(memo->keyword, key);
 
-  CompiledSchema *compiled_schema = create_compiled_schema(path, EXPOSE_TO_RUBY);
+  CompiledSchema *compiled_schema = create_compiled_schema(memo->parent, path, EXPOSE_TO_RUBY);
   VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
   compile(compiled_schema, value, memo->ref_data, memo->custom_formats);
@@ -47,9 +48,8 @@ static VALUE compile_properties(CompiledSchema *root_schema, VALUE ruby_schema, 
   if(!RB_TYPE_P(properties, T_HASH)) return Qundef;
 
   VALUE properties_hash = rb_hash_new();
-  VALUE properties_path = new_path(root_schema->path, keyword);
 
-  struct memo_S memo = { properties_hash, ref_data, properties_path, custom_formats, func };
+  struct memo_S memo = { root_schema, properties_hash, ref_data, keyword, custom_formats, func };
 
   rb_hash_foreach(properties, compile_property, (VALUE)&memo);
 
@@ -93,9 +93,8 @@ void compile_dependencies_val(CompiledSchema *root_schema, VALUE ruby_schema, VA
   if(!RB_TYPE_P(dependencies, T_HASH)) return;
 
   VALUE dependencies_val = rb_hash_new();
-  VALUE dependencies_path = new_path(root_schema->path, dependencies_str);
 
-  struct memo_S memo = { dependencies_val, ref_data, dependencies_path, custom_formats, no_op_key_transform };
+  struct memo_S memo = { root_schema, dependencies_val, ref_data, dependencies_str, custom_formats, no_op_key_transform };
 
   rb_hash_foreach(dependencies, compile_dependency, (VALUE)&memo);
 

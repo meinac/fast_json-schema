@@ -48,36 +48,11 @@ struct compile_memo_S {
   VALUE custom_formats;
 };
 
-static void compile_array_entries(VALUE array_path, VALUE array, struct compile_memo_S *memo) {
-  for(long i = 0; i < RARRAY_LEN(array); i++) {
-    VALUE entry = rb_ary_entry(array, i);
-    VALUE entry_path = append_long_to_path(array_path, i);
+static void compile_array_entries(VALUE array_path, VALUE array, struct compile_memo_S *memo);
 
-    if(is_schema_shaped(entry)) {
-      CompiledSchema *child = create_compiled_schema(memo->root_schema, entry_path, NO_FLAG);
-
-      /*
-      * Append the child pointer to the parent's nested_schemas array and bump the
-      * count BEFORE running `compile` on the child, so the parent's mark function
-      * will reach this child if the GC fires during its compilation.
-      */
-      memo->root_schema->nested_schemas[memo->root_schema->nested_schemas_count++] = child;
-
-      compile(child, entry, memo->ref_data, memo->custom_formats);
-    } else if(RB_TYPE_P(entry, T_ARRAY)) {
-      compile_array_entries(entry_path, entry, memo);
-    }
-  }
-}
-
-static int compile_nested(VALUE key, VALUE value, VALUE data) {
-  if(!RB_TYPE_P(key, T_STRING)) return ST_CONTINUE;
-  if(is_known_keyword(key)) return ST_CONTINUE;
-
-  struct compile_memo_S *memo = (struct compile_memo_S *)data;
-
+static void compile_entry(VALUE path, VALUE value, struct compile_memo_S *memo) {
   if(is_schema_shaped(value)) {
-    CompiledSchema *child = create_compiled_schema(memo->root_schema, key, NO_FLAG);
+    CompiledSchema *child = create_compiled_schema(memo->root_schema, path, NO_FLAG);
 
     /*
     * Append the child pointer to the parent's nested_schemas array and bump the
@@ -88,8 +63,24 @@ static int compile_nested(VALUE key, VALUE value, VALUE data) {
 
     compile(child, value, memo->ref_data, memo->custom_formats);
   } else if(RB_TYPE_P(value, T_ARRAY)) {
-    compile_array_entries(key, value, memo);
+    compile_array_entries(path, value, memo);
   }
+}
+
+static void compile_array_entries(VALUE array_path, VALUE array, struct compile_memo_S *memo) {
+  for(long i = 0; i < RARRAY_LEN(array); i++) {
+    VALUE entry = rb_ary_entry(array, i);
+    VALUE entry_path = append_long_to_path(array_path, i);
+
+    compile_entry(entry_path, entry, memo);
+  }
+}
+
+static int compile_nested(VALUE key, VALUE value, VALUE data) {
+  if(!RB_TYPE_P(key, T_STRING)) return ST_CONTINUE;
+  if(is_known_keyword(key)) return ST_CONTINUE;
+
+  compile_entry(key, value, (struct compile_memo_S *)data);
 
   return ST_CONTINUE;
 }

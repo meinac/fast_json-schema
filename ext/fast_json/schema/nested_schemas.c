@@ -1,5 +1,6 @@
 #include "nested_schemas.h"
 #include "keywords.h"
+#include "path.h"
 
 extern CompiledSchema *create_compiled_schema(CompiledSchema *, VALUE, schema_flag_t);
 extern void compile(CompiledSchema *, VALUE, VALUE, VALUE);
@@ -10,13 +11,33 @@ static bool is_schema_shaped(VALUE value) {
          RB_TYPE_P(value, T_FALSE);
 }
 
+static size_t count_schema_entries_in_array(VALUE array) {
+  size_t count = 0;
+
+  for(long i = 0; i < RARRAY_LEN(array); i++) {
+    VALUE entry = rb_ary_entry(array, i);
+
+    if(is_schema_shaped(entry)) {
+      count++;
+    } else if(RB_TYPE_P(entry, T_ARRAY)) {
+      count += count_schema_entries_in_array(entry);
+    }
+  }
+
+  return count;
+}
+
 static int count_nested(VALUE key, VALUE value, VALUE data) {
   if(!RB_TYPE_P(key, T_STRING)) return ST_CONTINUE;
   if(is_known_keyword(key)) return ST_CONTINUE;
-  if(!is_schema_shaped(value)) return ST_CONTINUE;
 
   size_t *count = (size_t *)data;
-  (*count)++;
+
+  if(is_schema_shaped(value)) {
+    (*count)++;
+  } else if(RB_TYPE_P(value, T_ARRAY)) {
+    *count += count_schema_entries_in_array(value);
+  }
 
   return ST_CONTINUE;
 }
@@ -27,23 +48,48 @@ struct compile_memo_S {
   VALUE custom_formats;
 };
 
+static void compile_array_entries(VALUE array_path, VALUE array, struct compile_memo_S *memo) {
+  for(long i = 0; i < RARRAY_LEN(array); i++) {
+    VALUE entry = rb_ary_entry(array, i);
+    VALUE entry_path = append_long_to_path(array_path, i);
+
+    if(is_schema_shaped(entry)) {
+      CompiledSchema *child = create_compiled_schema(memo->root_schema, entry_path, NO_FLAG);
+
+      /*
+      * Append the child pointer to the parent's nested_schemas array and bump the
+      * count BEFORE running `compile` on the child, so the parent's mark function
+      * will reach this child if the GC fires during its compilation.
+      */
+      memo->root_schema->nested_schemas[memo->root_schema->nested_schemas_count++] = child;
+
+      compile(child, entry, memo->ref_data, memo->custom_formats);
+    } else if(RB_TYPE_P(entry, T_ARRAY)) {
+      compile_array_entries(entry_path, entry, memo);
+    }
+  }
+}
+
 static int compile_nested(VALUE key, VALUE value, VALUE data) {
   if(!RB_TYPE_P(key, T_STRING)) return ST_CONTINUE;
   if(is_known_keyword(key)) return ST_CONTINUE;
-  if(!is_schema_shaped(value)) return ST_CONTINUE;
 
   struct compile_memo_S *memo = (struct compile_memo_S *)data;
 
-  CompiledSchema *child = create_compiled_schema(memo->root_schema, key, NO_FLAG);
+  if(is_schema_shaped(value)) {
+    CompiledSchema *child = create_compiled_schema(memo->root_schema, key, NO_FLAG);
 
-  /*
-  * Append the child pointer to the parent's nested_schemas array and bump the
-  * count BEFORE running `compile` on the child, so the parent's mark function
-  * will reach this child if the GC fires during its compilation.
-  */
-  memo->root_schema->nested_schemas[memo->root_schema->nested_schemas_count++] = child;
+    /*
+    * Append the child pointer to the parent's nested_schemas array and bump the
+    * count BEFORE running `compile` on the child, so the parent's mark function
+    * will reach this child if the GC fires during its compilation.
+    */
+    memo->root_schema->nested_schemas[memo->root_schema->nested_schemas_count++] = child;
 
-  compile(child, value, memo->ref_data, memo->custom_formats);
+    compile(child, value, memo->ref_data, memo->custom_formats);
+  } else if(RB_TYPE_P(value, T_ARRAY)) {
+    compile_array_entries(key, value, memo);
+  }
 
   return ST_CONTINUE;
 }

@@ -460,5 +460,278 @@ RSpec.describe FastJSON::Schema do
         it { is_expected.to be(valid?) }
       end
     end
+
+    describe "$ref into a schema under an unknown keyword" do
+      describe "unknown keyword whose value is a schema" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/customSchema",
+            "customSchema" => { "type" => "integer" }
+          }
+        end
+
+        where(:data, :valid?) do
+          1     | true
+          "foo" | false
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "unknown keyword whose value is an array of schemas" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/customList/0",
+            "customList" => [
+              { "type" => "integer" },
+              { "type" => "string" }
+            ]
+          }
+        end
+
+        where(:data, :valid?) do
+          1     | true
+          "foo" | false
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "$ref to a non-first entry in an array under an unknown keyword" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/customList/1",
+            "customList" => [
+              { "type" => "integer" },
+              { "type" => "string" }
+            ]
+          }
+        end
+
+        where(:data, :valid?) do
+          "foo" | true
+          1     | false
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "$ref to a true boolean schema entry in an array under an unknown keyword" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/customList/0",
+            "customList" => [true]
+          }
+        end
+
+        where(:data, :valid?) do
+          1     | true
+          "foo" | true
+          nil   | true
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "$ref to a false boolean schema entry in an array under an unknown keyword" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/customList/0",
+            "customList" => [false]
+          }
+        end
+
+        where(:data, :valid?) do
+          1     | false
+          "foo" | false
+          nil   | false
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "nested unknown keyword whose deeper value is an array of schemas" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/outer/inner/0",
+            "outer" => {
+              "inner" => [
+                { "type" => "integer" }
+              ]
+            }
+          }
+        end
+
+        where(:data, :valid?) do
+          1     | true
+          "foo" | false
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "$ref to the array itself is unresolved" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/customList",
+            "customList" => [{ "type" => "integer" }]
+          }
+        end
+
+        it "raises a RuntimeError when compiled" do
+          expect { schema }.to raise_error(RuntimeError, /Unresolved \$ref/)
+        end
+      end
+
+      describe "$ref into a deeply nested array under an unknown keyword" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/outer/0/0",
+            "outer" => [
+              [
+                { "type" => "integer" }
+              ]
+            ]
+          }
+        end
+
+        where(:data, :valid?) do
+          1     | true
+          "foo" | false
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "$ref into an even more deeply nested array under an unknown keyword" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/outer/0/0/0",
+            "outer" => [
+              [
+                [
+                  { "type" => "integer" }
+                ]
+              ]
+            ]
+          }
+        end
+
+        where(:data, :valid?) do
+          1     | true
+          "foo" | false
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "$ref selects among boolean schemas inside a nested array" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/outer/0/1",
+            "outer" => [
+              [true, false]
+            ]
+          }
+        end
+
+        where(:data, :valid?) do
+          1     | false
+          "foo" | false
+          nil   | false
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "$ref reaches both a schema and a nested-array sibling in a mixed array" do
+        let(:ruby_schema) do
+          {
+            "type" => "object",
+            "properties" => {
+              "schema_ref" => { "$ref" => "#/outer/0" },
+              "nested_array_ref" => { "$ref" => "#/outer/1/0" }
+            },
+            "outer" => [
+              { "type" => "integer" },
+              [{ "type" => "string" }]
+            ]
+          }
+        end
+
+        where(:data, :valid?) do
+          { "schema_ref" => 1, "nested_array_ref" => "foo" }     | true
+          { "schema_ref" => "bad", "nested_array_ref" => "foo" } | false
+          { "schema_ref" => 1, "nested_array_ref" => 1 }         | false
+        end
+
+        with_them do
+          it { is_expected.to be(valid?) }
+        end
+      end
+
+      describe "$ref past a scalar inside a nested array is unresolved" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/outer/0/0",
+            "outer" => [
+              ["not a schema"]
+            ]
+          }
+        end
+
+        it "raises a RuntimeError when compiled" do
+          expect { schema }.to raise_error(RuntimeError, /Unresolved \$ref/)
+        end
+      end
+
+      describe "$ref to an out-of-range index inside a nested array is unresolved" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/outer/0/5",
+            "outer" => [
+              [{ "type" => "integer" }]
+            ]
+          }
+        end
+
+        it "raises a RuntimeError when compiled" do
+          expect { schema }.to raise_error(RuntimeError, /Unresolved \$ref/)
+        end
+      end
+
+      describe "$ref to an intermediate array (not a schema) is unresolved" do
+        let(:ruby_schema) do
+          {
+            "$ref" => "#/outer/0",
+            "outer" => [
+              [{ "type" => "integer" }]
+            ]
+          }
+        end
+
+        it "raises a RuntimeError when compiled" do
+          expect { schema }.to raise_error(RuntimeError, /Unresolved \$ref/)
+        end
+      end
+    end
   end
 end

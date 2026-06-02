@@ -1,4 +1,5 @@
 #include "compiled_schema.h"
+#include "types/compile_context.h"
 #include "keywords.h"
 #include "validate.h"
 #include "path.h"
@@ -56,7 +57,7 @@
       CompiledSchema *child_schema = create_compiled_schema(compiled_schema, keyword##_str, NO_FLAG); \
       compiled_schema->keyword##_schema = child_schema;                                               \
                                                                                                       \
-      compile(child_schema, keyword##_val, ref_data, custom_formats);                                 \
+      compile(child_schema, keyword##_val, ctx);                                                      \
     }                                                                                                 \
   } while(0);
 
@@ -65,7 +66,7 @@
     VALUE keyword##_val = rb_hash_lookup2(ruby_schema, keyword##_str, Qundef);                                                               \
                                                                                                                                              \
     if(RB_TYPE_P(keyword##_val, T_ARRAY)) {                                                                                                  \
-      compile_schema_collection(compiled_schema, &(compiled_schema->keyword##_val), keyword##_val, keyword##_str, ref_data, custom_formats); \
+      compile_schema_collection(compiled_schema, &(compiled_schema->keyword##_val), keyword##_val, keyword##_str, ctx);                      \
     }                                                                                                                                        \
   } while(0);
 
@@ -445,9 +446,9 @@ static validation_function type_validation_function(VALUE ruby_schema, CompiledS
   return no_op_validate;
 }
 
-void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data, VALUE custom_formats) {
+void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, CompileContext *ctx) {
   // Embed compiled schema into Ruby Hash for ref resolution by its path.
-  register_path_for_ref_resolution(compiled_schema, ref_data);
+  register_path_for_ref_resolution(compiled_schema, ctx->ref_data);
 
   compiled_schema->validation_function = no_op_validate;
 
@@ -508,14 +509,14 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data,
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_3(minProperties, T_FIXNUM, T_BIGNUM, T_FLOAT);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(required, T_ARRAY);
 
-  compile_properties_val(compiled_schema, ruby_schema, ref_data, custom_formats);
-  compile_pattern_properties_val(compiled_schema, ruby_schema, ref_data, custom_formats);
-  compile_dependencies_val(compiled_schema, ruby_schema, ref_data, custom_formats);
+  compile_properties_val(compiled_schema, ruby_schema, ctx);
+  compile_pattern_properties_val(compiled_schema, ruby_schema, ctx);
+  compile_dependencies_val(compiled_schema, ruby_schema, ctx);
 
-  compile_nested_schemas(compiled_schema, ruby_schema, ref_data, custom_formats);
+  compile_nested_schemas(compiled_schema, ruby_schema, ctx);
 
   VALUE format_val = rb_hash_aref(ruby_schema, format_str);
-  set_format_validation_function_for_compiled_schema(compiled_schema, format_val, custom_formats);
+  set_format_validation_function_for_compiled_schema(compiled_schema, format_val, ctx->custom_formats);
 
   compiled_schema->type_validation_function = type_validation_function(ruby_schema, compiled_schema);
 
@@ -523,12 +524,11 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data,
     compiled_schema->validation_function = validate_ref;
 
   // Embed compiled schema into Ruby Hash for ref resolution by its $id (if present).
-  register_id_for_ref_resolution(compiled_schema, ref_data);
+  register_id_for_ref_resolution(compiled_schema, ctx->ref_data);
 }
 
 void compile_schema(VALUE self) {
   VALUE ruby_schema = rb_ivar_get(self, rb_intern("@ruby_schema"));
-  VALUE ref_data = rb_hash_new();
 
   /*
   * Before running the compilation logic, we have to wrap the CompiledSchema struct into a
@@ -540,10 +540,10 @@ void compile_schema(VALUE self) {
   CompiledSchema *compiled_schema = create_compiled_schema(NULL, root_path_str, flags);
   VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
-  VALUE custom_formats = rb_ivar_get(self, rb_intern("@custom_formats"));
+  CompileContext ctx = { rb_hash_new(), rb_ivar_get(self, rb_intern("@custom_formats")) };
 
-  compile(compiled_schema, ruby_schema, ref_data, custom_formats);
-  resolve_refs(compiled_schema, ref_data);
+  compile(compiled_schema, ruby_schema, &ctx);
+  resolve_refs(compiled_schema, ctx.ref_data);
 
   rb_ivar_set(self, rb_intern("compiled_schema"), compiled_schema_obj);
   rb_ivar_set(self, rb_intern("compiled"), Qtrue);

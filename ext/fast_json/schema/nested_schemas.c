@@ -3,7 +3,7 @@
 #include "path.h"
 
 extern CompiledSchema *create_compiled_schema(CompiledSchema *, VALUE, schema_flag_t);
-extern void compile(CompiledSchema *, VALUE, VALUE, VALUE);
+extern void compile(CompiledSchema *, VALUE, CompileContext *);
 
 static bool is_schema_shaped(VALUE value) {
   return RB_TYPE_P(value, T_HASH) ||
@@ -44,13 +44,12 @@ static int count_nested(VALUE key, VALUE value, VALUE data) {
 
 struct compile_memo_S {
   CompiledSchema *root_schema;
-  VALUE ref_data;
-  VALUE custom_formats;
+  CompileContext *ctx;
 };
 
 static void compile_array_entries(VALUE array_path, VALUE array, struct compile_memo_S *memo);
 
-static void compile_entry(VALUE path, VALUE value, struct compile_memo_S *memo) {
+static void compile_entry(VALUE value, VALUE path, struct compile_memo_S *memo) {
   if(is_schema_shaped(value)) {
     CompiledSchema *child = create_compiled_schema(memo->root_schema, path, NO_FLAG);
 
@@ -61,7 +60,7 @@ static void compile_entry(VALUE path, VALUE value, struct compile_memo_S *memo) 
     */
     memo->root_schema->nested_schemas[memo->root_schema->nested_schemas_count++] = child;
 
-    compile(child, value, memo->ref_data, memo->custom_formats);
+    compile(child, value, memo->ctx);
   } else if(RB_TYPE_P(value, T_ARRAY)) {
     compile_array_entries(path, value, memo);
   }
@@ -72,7 +71,7 @@ static void compile_array_entries(VALUE array_path, VALUE array, struct compile_
     VALUE entry = rb_ary_entry(array, i);
     VALUE entry_path = append_long_to_path(array_path, i);
 
-    compile_entry(entry_path, entry, memo);
+    compile_entry(entry, entry_path, memo);
   }
 }
 
@@ -80,12 +79,12 @@ static int compile_nested(VALUE key, VALUE value, VALUE data) {
   if(!RB_TYPE_P(key, T_STRING)) return ST_CONTINUE;
   if(is_known_keyword(key)) return ST_CONTINUE;
 
-  compile_entry(key, value, (struct compile_memo_S *)data);
+  compile_entry(value, key, (struct compile_memo_S *)data);
 
   return ST_CONTINUE;
 }
 
-void compile_nested_schemas(CompiledSchema *root_schema, VALUE ruby_schema, VALUE ref_data, VALUE custom_formats) {
+void compile_nested_schemas(CompiledSchema *root_schema, VALUE ruby_schema, CompileContext *ctx) {
   if(!RB_TYPE_P(ruby_schema, T_HASH)) return;
 
   size_t total = 0;
@@ -96,7 +95,7 @@ void compile_nested_schemas(CompiledSchema *root_schema, VALUE ruby_schema, VALU
   root_schema->nested_schemas = ALLOC_N(CompiledSchema *, total);
   root_schema->nested_schemas_count = 0;
 
-  struct compile_memo_S memo = { root_schema, ref_data, custom_formats };
+  struct compile_memo_S memo = { root_schema, ctx };
 
   rb_hash_foreach(ruby_schema, compile_nested, (VALUE)&memo);
 }

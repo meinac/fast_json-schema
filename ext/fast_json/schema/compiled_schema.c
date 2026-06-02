@@ -446,8 +446,8 @@ static validation_function type_validation_function(VALUE ruby_schema, CompiledS
 }
 
 void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data, VALUE custom_formats) {
-  // Embed compiled schema into Ruby Hash for ref resolution
-  register_schema_for_ref_resolution(compiled_schema, ref_data);
+  // Embed compiled schema into Ruby Hash for ref resolution by its path.
+  register_path_for_ref_resolution(compiled_schema, ref_data);
 
   compiled_schema->validation_function = no_op_validate;
 
@@ -521,6 +521,9 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, VALUE ref_data,
 
   if(compiled_schema->ref_val != Qundef)
     compiled_schema->validation_function = validate_ref;
+
+  // Embed compiled schema into Ruby Hash for ref resolution by its $id (if present).
+  register_id_for_ref_resolution(compiled_schema, ref_data);
 }
 
 void compile_schema(VALUE self) {

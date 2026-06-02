@@ -733,5 +733,169 @@ RSpec.describe FastJSON::Schema do
         end
       end
     end
+
+    describe "$ref resolves via $id on a sibling schema" do
+      let(:ruby_schema) do
+        {
+          "$ref" => "http://example.com/integer",
+          "definitions" => {
+            "IntegerSchema" => {
+              "$id" => "http://example.com/integer",
+              "type" => "integer"
+            }
+          }
+        }
+      end
+
+      where(:data, :valid?) do
+        1     | true
+        "foo" | false
+      end
+
+      with_them do
+        it { is_expected.to be(valid?) }
+      end
+    end
+
+    describe "$ref resolves via $id on an if subschema" do
+      let(:ruby_schema) do
+        {
+          "allOf" => [
+            { "$ref" => "http://example.com/ref/if" },
+            {
+              "if" => {
+                "$id" => "http://example.com/ref/if",
+                "type" => "integer"
+              }
+            }
+          ]
+        }
+      end
+
+      where(:data, :valid?) do
+        12    | true
+        "foo" | false
+      end
+
+      with_them do
+        it { is_expected.to be(valid?) }
+      end
+    end
+
+    describe "$ref resolves via $id on a then subschema" do
+      let(:ruby_schema) do
+        {
+          "allOf" => [
+            { "$ref" => "http://example.com/ref/then" },
+            {
+              "then" => {
+                "$id" => "http://example.com/ref/then",
+                "type" => "integer"
+              }
+            }
+          ]
+        }
+      end
+
+      where(:data, :valid?) do
+        12    | true
+        "foo" | false
+      end
+
+      with_them do
+        it { is_expected.to be(valid?) }
+      end
+    end
+
+    describe "$ref resolves via $id on an else subschema" do
+      let(:ruby_schema) do
+        {
+          "allOf" => [
+            { "$ref" => "http://example.com/ref/else" },
+            {
+              "else" => {
+                "$id" => "http://example.com/ref/else",
+                "type" => "integer"
+              }
+            }
+          ]
+        }
+      end
+
+      where(:data, :valid?) do
+        12    | true
+        "foo" | false
+      end
+
+      with_them do
+        it { is_expected.to be(valid?) }
+      end
+    end
+
+    describe "$ref resolves via $id inside an allOf entry" do
+      let(:ruby_schema) do
+        {
+          "allOf" => [
+            { "$ref" => "http://example.com/aliased" },
+            {
+              "$id" => "http://example.com/aliased",
+              "type" => "string"
+            }
+          ]
+        }
+      end
+
+      where(:data, :valid?) do
+        "foo" | true
+        1     | false
+      end
+
+      with_them do
+        it { is_expected.to be(valid?) }
+      end
+    end
+
+    describe "$ref resolves via anchor-style $id" do
+      let(:ruby_schema) do
+        {
+          "allOf" => [
+            { "$ref" => "#foo" }
+          ],
+          "definitions" => {
+            "A" => {
+              "$id" => "#foo",
+              "type" => "integer"
+            }
+          }
+        }
+      end
+
+      where(:data, :valid?) do
+        1     | true
+        "foo" | false
+      end
+
+      with_them do
+        it { is_expected.to be(valid?) }
+      end
+    end
+
+    describe "$ref to a non-existent $id remains unresolved" do
+      let(:ruby_schema) do
+        {
+          "$ref" => "http://example.com/missing",
+          "definitions" => {
+            "Other" => {
+              "$id" => "http://example.com/other",
+              "type" => "integer"
+            }
+          }
+        }
+      end
+
+      it "raises a RuntimeError when compiled" do
+        expect { schema }.to raise_error(RuntimeError, /Unresolved \$ref/)
+      end
+    end
   end
 end

@@ -79,11 +79,12 @@ void resolve_refs(CompiledSchema *compiled_schema, VALUE ref_data) {
     resolve_refs_for_nested_schemas(compiled_schema->nested_schemas, compiled_schema->nested_schemas_count, ref_data);
 }
 
-void register_schema_for_ref_resolution(CompiledSchema *compiled_schema, VALUE ref_data) {
-  // Embed compiled schema into Ruby Hash
+void register_path_for_ref_resolution(CompiledSchema *compiled_schema, VALUE ref_data) {
   rb_hash_aset(ref_data, compiled_schema->path, PTR2NUM(compiled_schema));
+}
 
-  // Embed compiled schema into Ruby Hash again if it has an $id
-  if(compiled_schema->id_val != Qundef)
-    rb_hash_aset(ref_data, compiled_schema->id_val, PTR2NUM(compiled_schema));
+void register_id_for_ref_resolution(CompiledSchema *compiled_schema, VALUE ref_data) {
+  if(compiled_schema->id_val == Qundef) return;
+
+  rb_hash_aset(ref_data, compiled_schema->id_val, PTR2NUM(compiled_schema));
 }

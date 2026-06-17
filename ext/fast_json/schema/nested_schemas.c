@@ -1,6 +1,7 @@
 #include "nested_schemas.h"
 #include "keywords.h"
 #include "path.h"
+#include "compile_context.h"
 
 extern CompiledSchema *create_compiled_schema(CompiledSchema *, VALUE, schema_flag_t);
 extern void compile(CompiledSchema *, VALUE, CompileContext *);
@@ -60,7 +61,9 @@ static void compile_entry(VALUE value, VALUE path, struct compile_memo_S *memo) 
     */
     memo->root_schema->nested_schemas[memo->root_schema->nested_schemas_count++] = child;
 
-    compile(child, value, memo->ctx);
+    CompileContext child_ctx = compile_context_descend(memo->ctx, path);
+
+    compile(child, value, &child_ctx);
   } else if(RB_TYPE_P(value, T_ARRAY)) {
     compile_array_entries(path, value, memo);
   }

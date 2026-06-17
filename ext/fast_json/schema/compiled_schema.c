@@ -1,5 +1,6 @@
 #include "compiled_schema.h"
 #include "types/compile_context.h"
+#include "uri_scope.h"
 #include "keywords.h"
 #include "validate.h"
 #include "path.h"
@@ -115,6 +116,10 @@ static void mark_compiled_schema(CompiledSchema *compiled_schema) {
   MARK_VALUE(recursiveAnchor);
   MARK_VALUE(recursiveRef);
 
+  MARK_VALUE(resolvedId);
+  MARK_VALUE(resolvedRef);
+  MARK_VALUE(scopePointer);
+
   MARK_VALUE(const);
   MARK_VALUE(enum);
 
@@ -224,6 +229,10 @@ static void compact_compiled_schema(CompiledSchema *compiled_schema) {
   COMPACT_VALUE(recursiveAnchor);
   COMPACT_VALUE(recursiveRef);
 
+  COMPACT_VALUE(resolvedId);
+  COMPACT_VALUE(resolvedRef);
+  COMPACT_VALUE(scopePointer);
+
   COMPACT_VALUE(const);
   COMPACT_VALUE(enum);
 
@@ -317,6 +326,10 @@ CompiledSchema *create_compiled_schema(CompiledSchema *parent, VALUE path, schem
   compiled_schema->ref_val = Qundef;
   compiled_schema->recursiveAnchor_val = Qundef;
   compiled_schema->recursiveRef_val = Qundef;
+
+  compiled_schema->resolvedId_val = Qundef;
+  compiled_schema->resolvedRef_val = Qundef;
+  compiled_schema->scopePointer_val = Qundef;
 
   compiled_schema->ref_schema = NULL;
 
@@ -471,6 +484,16 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, CompileContext 
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(recursiveAnchor, T_STRING);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(recursiveRef, T_STRING);
 
+  CompileContext child_ctx_storage = resolve_uri_scope(compiled_schema, ctx);
+
+  /*
+  * Embed compiled schema into Ruby Hash for ref resolution by its $id and resolved keys (if present).
+  * Uses `ctx->current_base` (the parent's base) BEFORE the rebind below.
+  */
+  register_id_for_ref_resolution(compiled_schema, ctx->ref_data, ctx->current_base);
+
+  ctx = &child_ctx_storage;
+
   ASSIGN_ANY_VALUE_TO_COMPILED_SCHEMA(const);
   ASSIGN_TYPED_VALUE_TO_COMPILED_SCHEMA_1(enum, T_ARRAY);
 
@@ -522,9 +545,6 @@ void compile(CompiledSchema *compiled_schema, VALUE ruby_schema, CompileContext 
 
   if(compiled_schema->ref_val != Qundef)
     compiled_schema->validation_function = validate_ref;
-
-  // Embed compiled schema into Ruby Hash for ref resolution by its $id (if present).
-  register_id_for_ref_resolution(compiled_schema, ctx->ref_data);
 }
 
 void compile_schema(VALUE self) {
@@ -540,7 +560,12 @@ void compile_schema(VALUE self) {
   CompiledSchema *compiled_schema = create_compiled_schema(NULL, root_path_str, flags);
   VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
-  CompileContext ctx = { rb_hash_new(), rb_ivar_get(self, rb_intern("@custom_formats")) };
+  CompileContext ctx = {
+    .ref_data        = rb_hash_new(),
+    .custom_formats  = rb_ivar_get(self, rb_intern("@custom_formats")),
+    .current_base    = Qnil,
+    .current_pointer = Qnil
+  };
 
   compile(compiled_schema, ruby_schema, &ctx);
   resolve_refs(compiled_schema, ctx.ref_data);

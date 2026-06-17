@@ -2,6 +2,7 @@
 #include "keywords.h"
 #include "path.h"
 #include "compiled_schema.h"
+#include "compile_context.h"
 
 extern CompiledSchema *create_compiled_schema(CompiledSchema *, VALUE, schema_flag_t);
 extern void compile(CompiledSchema *, VALUE, CompileContext *);
@@ -35,7 +36,9 @@ static int compile_property(VALUE key, VALUE value, VALUE data) {
   VALUE protected_path = compiled_schema->path;
   VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
-  compile(compiled_schema, value, memo->ctx);
+  CompileContext child_ctx = compile_context_descend(memo->ctx, path);
+
+  compile(compiled_schema, value, &child_ctx);
 
   rb_hash_aset(memo->properties_hash, memo->key_transform_function(key), compiled_schema_obj);
 

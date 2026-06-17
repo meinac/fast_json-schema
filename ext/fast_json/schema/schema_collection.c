@@ -1,6 +1,7 @@
 #include "schema_collection.h"
 #include "compiled_schema.h"
 #include "path.h"
+#include "compile_context.h"
 
 extern CompiledSchema *create_compiled_schema(CompiledSchema *, VALUE, schema_flag_t);
 extern void compile(CompiledSchema *, VALUE, CompileContext *);
@@ -21,7 +22,9 @@ void compile_schema_collection(CompiledSchema *parent, VALUE *schema_member, VAL
     VALUE protected_path = compiled_schema->path;
     VALUE compiled_schema_obj = WrapCompiledSchema(compiled_schema);
 
-    compile(compiled_schema, ruby_schema, ctx);
+    CompileContext child_ctx = compile_context_descend(ctx, path);
+
+    compile(compiled_schema, ruby_schema, &child_ctx);
     rb_ary_push(compiled_schema_collection, compiled_schema_obj);
     RB_GC_GUARD(protected_path);
   }
